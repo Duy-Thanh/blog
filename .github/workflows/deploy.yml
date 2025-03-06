@@ -25,11 +25,7 @@ jobs:
       - name: Create Private Key File
         run: |
           mkdir -p src/keys
-          cat > src/keys/private-key.js << 'EOL'
-          export const privateKey = `-----BEGIN PRIVATE KEY-----
-          ${{ secrets.PRIVATE_KEY }}
-          -----END PRIVATE KEY-----`;
-          EOL
+          echo 'export const privateKey = "-----BEGIN PRIVATE KEY-----\n${{ secrets.PRIVATE_KEY }}\n-----END PRIVATE KEY-----";' > src/keys/private-key.js
 
       - name: Build
         env:
