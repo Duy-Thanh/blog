@@ -3,21 +3,158 @@ import styled, { keyframes } from 'styled-components';
 import { FaGithub, FaExternalLinkAlt, FaLinkedin, FaEnvelope, FaQuoteLeft } from 'react-icons/fa';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { motion } from 'framer-motion';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const HeroSection = styled.section`
-  min-height: 90vh;
+const HeroSection = styled(motion.section)`
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #2a2a2a 100%);
-  color: #fff;
+  position: relative;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.95) 100%);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(
+        circle at center,
+        rgba(42, 223, 255, 0.1) 0%,
+        transparent 50%
+      ),
+      linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(42, 223, 255, 0.03) 50%,
+        transparent 100%
+      );
+    opacity: 0.5;
+    animation: rotate 20s linear infinite;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const HeroContent = styled(motion.div)`
+  max-width: 800px;
+  text-align: center;
+  z-index: 1;
+  padding: 2rem;
+  background: rgba(32, 32, 32, 0.7);
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(42, 223, 255, 0.1),
+    inset 0 0 80px rgba(42, 223, 255, 0.05);
+  backdrop-filter: blur(10px);
+`;
+
+const Title = styled(motion.h1)`
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(42, 223, 255, 0.5);
+`;
+
+const Subtitle = styled(motion.h2)`
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+`;
+
+const Description = styled(motion.p)`
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+`;
+
+const SocialLinks = styled(motion.div)`
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+
+  a {
+    color: #2ADFFF;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(42, 223, 255, 0.2);
+      transform: scale(0);
+      transition: transform 0.3s ease;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      color: #fff;
+
+      &::after {
+        transform: scale(1.5);
+      }
+    }
+  }
+`;
+
+const SectionTitle = styled(motion.h2)`
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #2ADFFF;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(42, 223, 255, 0.5);
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #2ADFFF, transparent);
+    border-radius: 2px;
+  }
+`;
+
+const ProjectsSection = styled.section`
+  padding: 6rem 2rem;
+  background: rgba(26, 26, 26, 0.95);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   &::before {
     content: '';
@@ -25,86 +162,15 @@ const HeroSection = styled.section`
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, rgba(97, 218, 251, 0.1) 0%, transparent 100%);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(42, 223, 255, 0.3), transparent);
   }
 `;
 
-const HeroContent = styled.div`
+const ProjectsContainer = styled.div`
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  text-align: left;
-  position: relative;
-  z-index: 1;
-  animation: ${fadeIn} 1s ease-out;
-`;
-
-const Title = styled.h1`
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  background: linear-gradient(to right, #fff, var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  @media (max-width: 768px) {
-    font-size: 2.5rem;
-  }
-`;
-
-const Subtitle = styled.h2`
-  font-size: 1.8rem;
-  color: var(--accent-color);
-  margin-bottom: 2rem;
-  
-  @media (max-width: 768px) {
-    font-size: 1.3rem;
-  }
-`;
-
-const Description = styled.p`
-  font-size: 1.2rem;
-  max-width: 600px;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  color: rgba(255, 255, 255, 0.9);
-`;
-
-const SocialLinks = styled.div`
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-
-  a {
-    color: #fff;
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      color: var(--accent-color);
-      transform: translateY(-3px);
-    }
-  }
-`;
-
-const ProjectsSection = styled.section`
-  padding: 6rem 2rem;
-  background: var(--background-color);
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 3rem;
-  color: var(--primary-color);
-  
-  &::after {
-    content: '';
-    display: block;
-    width: 50px;
-    height: 3px;
-    background: var(--accent-color);
-    margin: 1rem auto;
-  }
 `;
 
 const ProjectGrid = styled.div`
@@ -584,15 +650,34 @@ const AchievementCard = styled.div`
   background: rgba(255, 255, 255, 0.05);
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(42, 223, 255, 0.1);
+  }
 
   h3 {
     font-size: 2.5rem;
-    color: var(--accent-color);
+    color: #2ADFFF;
     margin-bottom: 1rem;
+    background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(42, 223, 255, 0.3);
+  }
+
+  h4 {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 1rem;
+    font-weight: 500;
   }
 
   p {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    font-size: 1rem;
   }
 `;
 
@@ -771,68 +856,102 @@ function Home() {
   return (
     <>
       <HeroSection>
-        <HeroContent>
-          <Title>Hi, I'm DuyThanh</Title>
-          <Subtitle>Software Developer & Tech Enthusiast</Subtitle>
-          <Description>
+        <HeroContent
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <Title
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+          >
+            Hi, I'm DuyThanh
+          </Title>
+          <Subtitle
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            Software Developer & Tech Enthusiast
+          </Subtitle>
+          <Description
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+          >
             I specialize in building exceptional digital experiences. 
             Currently, I'm focused on building accessible, human-centered products
             using modern web technologies.
           </Description>
-          <SocialLinks>
-            <a href="https://github.com/Duy-Thanh" target="_blank" rel="noopener noreferrer">
+          <SocialLinks
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.8 }}
+          >
+            <motion.a 
+              href="https://github.com/Duy-Thanh"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+            >
               <FaGithub />
-            </a>
-            <a href="https://linkedin.com/in/thanhdz167" target="_blank" rel="noopener noreferrer">
+            </motion.a>
+            <motion.a 
+              href="https://linkedin.com/in/thanhdz167"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+            >
               <FaLinkedin />
-            </a>
-            <a href="mailto:thanhdz167@gmail.com">
+            </motion.a>
+            <motion.a 
+              href="mailto:thanhdz167@gmail.com"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+            >
               <FaEnvelope />
-            </a>
+            </motion.a>
           </SocialLinks>
-          <StatsSection>
-            <StatItem>
-              <h3>3+</h3>
-              <p>Years Experience</p>
-            </StatItem>
-            <StatItem>
-              <h3>50+</h3>
-              <p>Projects Completed</p>
-            </StatItem>
-            <StatItem>
-              <h3>20+</h3>
-              <p>Happy Clients</p>
-            </StatItem>
-          </StatsSection>
         </HeroContent>
       </HeroSection>
 
       <ProjectsSection>
-        <SectionTitle>Featured Projects</SectionTitle>
-        <ProjectGrid>
-          {projects.map((project, index) => (
-            <ProjectCard key={index}>
-              <ProjectImage src={project.image} alt={project.title} />
-              <ProjectInfo>
-                <ProjectTitle>{project.title}</ProjectTitle>
-                <ProjectDescription>{project.description}</ProjectDescription>
-                <ProjectTech>
-                  {project.tech.map((tech, index) => (
-                    <TechTag key={index}>{tech}</TechTag>
-                  ))}
-                </ProjectTech>
-                <ProjectLinks>
-                  <a href={project.github} target="_blank" rel="noopener noreferrer">
-                    <FaGithub />
-                  </a>
-                  <a href={project.demo} target="_blank" rel="noopener noreferrer">
-                    <FaExternalLinkAlt />
-                  </a>
-                </ProjectLinks>
-              </ProjectInfo>
-            </ProjectCard>
-          ))}
-        </ProjectGrid>
+        <SectionTitle
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Featured Projects
+        </SectionTitle>
+        <ProjectsContainer>
+          <ProjectGrid>
+            {projects.map((project, index) => (
+              <ProjectCard key={index}>
+                <ProjectImage src={project.image} alt={project.title} />
+                <ProjectInfo>
+                  <ProjectTitle>{project.title}</ProjectTitle>
+                  <ProjectDescription>{project.description}</ProjectDescription>
+                  <ProjectTech>
+                    {project.tech.map((tech, index) => (
+                      <TechTag key={index}>{tech}</TechTag>
+                    ))}
+                  </ProjectTech>
+                  <ProjectLinks>
+                    <a href={project.github} target="_blank" rel="noopener noreferrer">
+                      <FaGithub />
+                    </a>
+                    <a href={project.demo} target="_blank" rel="noopener noreferrer">
+                      <FaExternalLinkAlt />
+                    </a>
+                  </ProjectLinks>
+                </ProjectInfo>
+              </ProjectCard>
+            ))}
+          </ProjectGrid>
+        </ProjectsContainer>
       </ProjectsSection>
 
       <TimelineSection>
@@ -932,7 +1051,7 @@ function Home() {
       </BlogPreviewSection>
 
       <AchievementsSection>
-        <SectionTitle style={{ color: '#fff' }}>Achievements</SectionTitle>
+        <SectionTitle>Achievements</SectionTitle>
         <AchievementGrid>
           {achievements.map((achievement, index) => (
             <AchievementCard 

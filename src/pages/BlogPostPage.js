@@ -265,19 +265,19 @@ function BlogPostPage() {
     fetchPost();
   }, [slug]);
 
+  const calculateReadTime = (content) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const getReadTime = (content) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    const readTime = Math.ceil(wordCount / wordsPerMinute);
-    return `${readTime} min read`;
   };
 
   if (loading) return <PageWrapper><div>Loading...</div></PageWrapper>;
@@ -293,11 +293,11 @@ function BlogPostPage() {
           <PostMeta>
             <MetaItem>
               <FaCalendar />
-              {new Date(post.created_at).toLocaleDateString()}
+              {formatDate(post.created_at)}
             </MetaItem>
             <MetaItem>
               <FaClock />
-              {getReadTime(post.content)}
+              {calculateReadTime(post.content)}
             </MetaItem>
           </PostMeta>
           <PostContent>

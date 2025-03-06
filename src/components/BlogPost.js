@@ -82,17 +82,34 @@ const ActionButton = styled.button`
 `;
 
 function BlogPost({ post, onEdit, onDelete, isAdmin }) {
+  // Calculate read time based on content length
+  const calculateReadTime = (content) => {
+    const wordsPerMinute = 200; // Average reading speed
+    const wordCount = content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
+  };
+
+  // Format date nicely
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <PostCard>
       <PostTitle to={`/blog/${post.slug}`}>{post.title}</PostTitle>
       <PostMeta>
         <MetaItem>
           <FaCalendar />
-          {new Date(post.created_at).toLocaleDateString()}
+          {formatDate(post.created_at)}
         </MetaItem>
         <MetaItem>
           <FaClock />
-          {post.readTime || '5 min read'}
+          {calculateReadTime(post.content)}
         </MetaItem>
       </PostMeta>
       <PostExcerpt>{post.excerpt}</PostExcerpt>

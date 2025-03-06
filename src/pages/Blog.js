@@ -198,12 +198,35 @@ function Blog() {
 
   const navigate = useNavigate();
 
+  // Calculate read time for excerpt preview
+  const calculateReadTime = (content) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readTime} min read`;
+  };
+
+  // Format date nicely
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Update the posts data with calculated read time
   useEffect(() => {
     const loadPosts = async () => {
       try {
         const data = await blogService.getPosts();
-        setPosts(data);
-        // Calculate total pages based on posts length and items per page (e.g., 10 per page)
+        // Add calculated read time to each post
+        const postsWithReadTime = data.map(post => ({
+          ...post,
+          readTime: calculateReadTime(post.content),
+          formattedDate: formatDate(post.created_at)
+        }));
+        setPosts(postsWithReadTime);
         setTotalPages(Math.ceil(data.length / 10));
       } catch (error) {
         console.error('Error loading posts:', error);
