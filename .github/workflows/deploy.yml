@@ -25,15 +25,11 @@ jobs:
       - name: Create Private Key File
         run: |
           mkdir -p src/keys
-          cat << 'EOF' > create-key.js
-          const fs = require('fs');
-          const privateKey = process.env.PRIVATE_KEY;
-          const content = `export const privateKey = "${privateKey}";`;
-          fs.writeFileSync('src/keys/private-key.js', content);
-          EOF
-          node create-key.js
-        env:
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          cat > src/keys/private-key.js << 'EOL'
+          export const privateKey = `-----BEGIN PRIVATE KEY-----
+          ${{ secrets.PRIVATE_KEY }}
+          -----END PRIVATE KEY-----`;
+          EOL
 
       - name: Build
         env:
