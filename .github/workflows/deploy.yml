@@ -23,9 +23,15 @@ jobs:
         run: yarn install
 
       - name: Create Private Key File
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
           mkdir -p src/keys
-          echo 'export const privateKey = "-----BEGIN PRIVATE KEY-----\n${{ secrets.PRIVATE_KEY }}\n-----END PRIVATE KEY-----";' > src/keys/private-key.js
+          cat << EOF > src/keys/private-key.js
+          export const privateKey = \`-----BEGIN PRIVATE KEY-----
+          ${PRIVATE_KEY}
+          -----END PRIVATE KEY-----\`;
+          EOF
 
       - name: Build
         env:
