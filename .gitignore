@@ -28,5 +28,6 @@ gh-pages*
 
 # Security
 src/keys/private-key.js
+sec.js
 public/encrypted-credentials.txt
 public/encrypted-credentials.json
