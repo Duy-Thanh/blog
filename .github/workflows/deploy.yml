@@ -35,17 +35,19 @@ jobs:
         run: |
           echo "${{ secrets.ENCRYPTED_CREDENTIALS }}" > public/encrypted-credentials.json
 
+      - name: Create Environment File
+        run: |
+          cat > .env.production << EOL
+          REACT_APP_SUPABASE_URL=${{ secrets.REACT_APP_SUPABASE_URL }}
+          REACT_APP_SUPABASE_ANON_KEY=${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
+          REACT_APP_ENCRYPTED_CREDENTIALS_PATH=/blog/encrypted-credentials.json
+          PUBLIC_URL=/blog
+          EOL
+
       - name: Build
         env:
           CI: false
-          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
-          REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
-          REACT_APP_ENCRYPTED_CREDENTIALS_PATH: ${{ secrets.REACT_APP_ENCRYPTED_CREDENTIALS_PATH }}
-        run: |
-          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env.production
-          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env.production
-          echo "REACT_APP_ENCRYPTED_CREDENTIALS_PATH=$REACT_APP_ENCRYPTED_CREDENTIALS_PATH" >> .env.production
-          yarn build
+        run: yarn build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
