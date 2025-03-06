@@ -23,15 +23,9 @@ jobs:
         run: yarn install
 
       - name: Create Private Key File
-        env:
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
           mkdir -p src/keys
-          cat << EOF > src/keys/private-key.js
-          export const privateKey = \`-----BEGIN PRIVATE KEY-----
-          ${PRIVATE_KEY}
-          -----END PRIVATE KEY-----\`;
-          EOF
+          echo "export const privateKey = '${{ secrets.PRIVATE_KEY }}';" > src/keys/private-key.js
 
       - name: Build
         env:
@@ -52,4 +46,4 @@ jobs:
           external_repository: Duy-Thanh/blog
           publish_branch: gh-pages
           publish_dir: ./build
-          force_orphan: true 
+          force_orphan: true
