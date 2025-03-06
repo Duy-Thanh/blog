@@ -1,0 +1,24 @@
+:root {
+  --primary-color: #1a1a1a;
+  --secondary-color: #4a90e2;
+  --text-color: #333333;
+  --background-color: #ffffff;
+  --accent-color: #61dafb;
+}
+
+.App {
+  text-align: left;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Remove previous App-specific styles */
