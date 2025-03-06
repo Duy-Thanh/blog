@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { supabase } from '../supabase/config';
+import { getSupabase } from '../supabase/config';
+import { blogService } from '../services/blogService';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useAuth } from '../contexts/AuthContext';
 
 const PageWrapper = styled.div`
   display: flex;
@@ -87,6 +89,12 @@ const Button = styled.button`
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(42, 223, 255, 0.2);
   }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
 `;
 
 const TagInput = styled(Input)`
@@ -133,59 +141,85 @@ const MarkdownPreview = styled.div`
   }
 `;
 
+const FormContainer = styled.div`
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1E1E1E;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  color: #888;
+  font-size: 0.9rem;
+`;
+
+const ErrorMessage = styled.div`
+  color: #ff4444;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+`;
+
 function NewBlogPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [slug, setSlug] = useState('');
-  const [tags, setTags] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const createSlug = (text) => {
+  const generateSlug = (text) => {
     return text
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
   };
 
-  const handleTitleChange = (e) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    setSlug(createSlug(newTitle));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     
+    if (!user) {
+      setError('You must be logged in to create a post');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error('You must be logged in to create a post');
+      const slug = generateSlug(title);
+      const post = {
+        title,
+        content,
+        slug,
+        user_id: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([
-          {
-            title,
-            content,
-            slug,
-            tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-            created_at: new Date().toISOString(),
-            user_id: user.id,
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      navigate(`/blog/${slug}`);
+      await blogService.createPost(post);
+      navigate('/blog');
     } catch (error) {
       console.error('Error creating post:', error);
-      alert(error.message || 'Failed to create post');
+      setError(error.message);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -193,38 +227,32 @@ function NewBlogPost() {
     <PageWrapper>
       <EditorContainer>
         <Title>Create New Post</Title>
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            placeholder="Post Title"
-            value={title}
-            onChange={handleTitleChange}
-            required
-          />
-          <Input
-            type="text"
-            placeholder="URL Slug"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            required
-          />
-          <TagInput
-            type="text"
-            placeholder="Tags (comma-separated)"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-          />
-          <TagsHelp>Separate tags with commas (e.g., react, javascript, web)</TagsHelp>
-          <TextArea
-            placeholder="Write your post content in Markdown..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          />
-          <Button type="submit" disabled={saving}>
-            {saving ? 'Publishing...' : 'Publish Post'}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        <Form onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label htmlFor="title">Title</Label>
+            <Input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="content">Content</Label>
+            <TextArea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              rows={10}
+            />
+          </FormGroup>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Post'}
           </Button>
-        </form>
+        </Form>
       </EditorContainer>
 
       <PreviewContainer>

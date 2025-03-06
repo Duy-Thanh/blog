@@ -25,3 +25,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 gh-pages*
+
+# Security
+src/keys/private-key.js
+public/encrypted-credentials.txt
+public/encrypted-credentials.json

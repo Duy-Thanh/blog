@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
-import { supabase } from '../supabase/config';
+import { FaCalendar, FaClock } from 'react-icons/fa';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FaCalendar, FaClock } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+import { blogService } from '../services/blogService';
 
 const PageWrapper = styled.div`
   background-color: #1a1a1a;
@@ -18,19 +19,111 @@ const PageWrapper = styled.div`
 
 const PostContainer = styled.div`
   max-width: 800px;
-  margin: 0 auto;
-  padding: 3rem;
-  background-color: #1E1E1E;
-  border-radius: 20px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1E1E1E;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+`;
+
+const Title = styled.h1`
+  color: #2ADFFF;
+  margin-bottom: 1rem;
+`;
+
+const Meta = styled.div`
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Content = styled.div`
+  color: #fff;
+  line-height: 1.6;
   
-  background-image: linear-gradient(
-    to bottom right,
-    rgba(42, 223, 255, 0.02),
-    rgba(42, 223, 255, 0.001)
-  );
+  h1, h2, h3, h4, h5, h6 {
+    color: #2ADFFF;
+    margin: 1.5rem 0 1rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  pre {
+    margin: 1rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  a {
+    color: #2ADFFF;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+
+  blockquote {
+    border-left: 4px solid #2ADFFF;
+    margin: 1rem 0;
+    padding-left: 1rem;
+    color: #888;
+  }
+
+  ul, ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+`;
+
+const Button = styled.button`
+  background: ${props => props.danger ? '#ff4444' : '#2ADFFF'};
+  color: #1a1a1a;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px ${props => props.danger ? 'rgba(255, 68, 68, 0.2)' : 'rgba(42, 223, 255, 0.2)'};
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: #ff4444;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 68, 68, 0.2);
 `;
 
 const PostTitle = styled.h1`
@@ -235,6 +328,8 @@ const GlobalStyle = createGlobalStyle`
 
 function BlogPostPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -243,27 +338,40 @@ function BlogPostPage() {
     const fetchPost = async () => {
       try {
         console.log('Fetching post with slug:', slug);
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('slug', slug)
-          .maybeSingle();
-
-        if (error) throw error;
-        if (!data) throw new Error('Post not found');
-
-        console.log('Fetched post:', data);
-        setPost(data);
-      } catch (err) {
-        console.error('Error fetching post:', err);
-        setError(err.message);
+        const data = await blogService.getPostBySlug(slug);
+        if (data) {
+          setPost(data);
+        } else {
+          setError('Post not found');
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPost();
+    if (slug) {
+      fetchPost();
+    }
   }, [slug]);
+
+  const handleEdit = () => {
+    navigate(`/blog/editor/${post.id}`);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await blogService.deletePost(post.id);
+        navigate('/blog');
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        setError(error.message);
+      }
+    }
+  };
 
   const calculateReadTime = (content) => {
     const wordsPerMinute = 200;
@@ -331,6 +439,12 @@ function BlogPostPage() {
                 <Tag key={index}>{tag}</Tag>
               ))}
             </TagsContainer>
+          )}
+          {user && user.id === post.user_id && (
+            <ButtonGroup>
+              <Button onClick={handleEdit}>Edit Post</Button>
+              <Button danger onClick={handleDelete}>Delete Post</Button>
+            </ButtonGroup>
           )}
         </PostContainer>
       </PageWrapper>

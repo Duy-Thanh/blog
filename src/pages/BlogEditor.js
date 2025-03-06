@@ -1,327 +1,329 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { blogService } from '../services/blogService';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { supabase } from '../supabase/config';
+import { useAuth } from '../contexts/AuthContext';
 
-const EditorContainer = styled.div`
+const PageWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  padding: 2rem;
   max-width: 1600px;
-  margin: 0 auto;
-  min-height: calc(100vh - 100px);
-  background: #1a1a1a;
-  color: white;
-`;
+  margin: 2rem auto;
+  padding: 0 2rem;
 
-const EditorSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  h2 {
-    color: var(--accent-color);
-    margin-bottom: 1rem;
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
   }
 `;
 
-const MetadataSection = styled.div`
+const EditorContainer = styled.div`
+  background: #1E1E1E;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+`;
+
+const PreviewContainer = styled.div`
+  background: #1E1E1E;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+`;
+
+const Title = styled.h1`
+  color: #2ADFFF;
   margin-bottom: 2rem;
-  display: grid;
-  gap: 1rem;
+`;
+
+const PreviewTitle = styled.h2`
+  color: #2ADFFF;
+  margin-bottom: 2rem;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const Label = styled.label`
+  color: #888;
+  font-size: 0.9rem;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  background: #2a2a2a;
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(42, 223, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
   font-size: 1rem;
 
   &:focus {
     outline: none;
-    border-color: var(--accent-color);
+    border-color: #2ADFFF;
   }
-`;
-
-const TagInput = styled(Input)`
-  width: auto;
-  margin-right: 0.5rem;
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
-  height: 500px;
+  height: 400px;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  background: #2a2a2a;
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(42, 223, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
   resize: vertical;
 
   &:focus {
     outline: none;
-    border-color: var(--accent-color);
-  }
-`;
-
-const PreviewSection = styled.div`
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  background: #2a2a2a;
-  overflow-y: auto;
-  height: 100%;
-  color: white;
-
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--accent-color);
-  }
-
-  p {
-    line-height: 1.6;
-  }
-
-  code {
-    background: #1a1a1a;
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
+    border-color: #2ADFFF;
   }
 `;
 
 const Button = styled.button`
-  padding: 0.8rem 1.5rem;
-  background: var(--accent-color);
-  color: white;
+  background: #2ADFFF;
+  color: #1a1a1a;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    opacity: 0.9;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(42, 223, 255, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
-const TagsContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+const ErrorMessage = styled.div`
+  color: #ff4444;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 68, 68, 0.2);
 `;
 
-const Tag = styled.span`
-  background: rgba(97, 218, 251, 0.1);
-  color: var(--accent-color);
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  button {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    padding: 0;
-    font-size: 1rem;
+const MarkdownPreview = styled.div`
+  color: #fff;
+  line-height: 1.6;
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: #2ADFFF;
+    margin: 1.5rem 0 1rem;
   }
-`;
 
-const Label = styled.label`
-  color: white;
-  margin-bottom: 0.5rem;
-  display: block;
+  p {
+    margin-bottom: 1rem;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  pre {
+    margin: 1rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  a {
+    color: #2ADFFF;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+
+  blockquote {
+    border-left: 4px solid #2ADFFF;
+    margin: 1rem 0;
+    padding-left: 1rem;
+    color: #888;
+  }
+
+  ul, ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+  }
 `;
 
 function BlogEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [post, setPost] = useState(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [post, setPost] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    tags: [],
-    date: new Date().toISOString().split('T')[0],
-    readTime: '5 min read'
-  });
-  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
-
       try {
         console.log('Fetching post with ID:', id);
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) {
-          throw error;
+        const data = await blogService.getPost(id);
+        if (data) {
+          setPost(data);
+          setTitle(data.title);
+          setContent(data.content);
+          setExcerpt(data.excerpt || '');
+          setTags(data.tags?.join(', ') || '');
+        } else {
+          setError('Post not found');
         }
-
-        if (!data) {
-          throw new Error('Post not found');
-        }
-
-        console.log('Fetched post:', data);
-        setPost(data);
-      } catch (err) {
-        console.error('Error fetching post:', err);
-        setError(err.message);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPost();
+    if (id) {
+      fetchPost();
+    }
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setPost(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAddTag = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newTag && !post.tags.includes(newTag)) {
-      setPost(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag]
-      }));
-      setNewTag('');
+    
+    if (!user) {
+      setError('You must be logged in to edit a post');
+      return;
     }
-  };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setPost(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
+    setSaving(true);
+    setError(null);
 
-  const handleSave = async () => {
     try {
-      if (id) {
-        // Update existing post
-        const { error } = await supabase
-          .from('posts')
-          .update({
-            title: post.title,
-            content: post.content,
-            excerpt: post.excerpt,
-            tags: post.tags,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id);
+      const tagArray = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
 
-        if (error) throw error;
-      } else {
-        // Create new post
-        const { error } = await supabase
-          .from('posts')
-          .insert([{
-            ...post,
-            slug: post.title
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)/g, '')
-          }]);
+      const updates = {
+        title,
+        content,
+        excerpt,
+        tags: tagArray,
+        updated_at: new Date().toISOString()
+      };
 
-        if (error) throw error;
-      }
-
+      await blogService.updatePost(id, updates);
       navigate('/blog');
     } catch (error) {
-      console.error('Error saving post:', error);
+      console.error('Error updating post:', error);
       setError(error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
+  if (!post) return <div>Post not found</div>;
 
   return (
-    <EditorContainer>
-      <EditorSection>
-        <h2>{id ? 'Edit Post' : 'Create New Post'}</h2>
-        <MetadataSection>
-          <div>
-            <Label>Title:</Label>
+    <PageWrapper>
+      <EditorContainer>
+        <Title>Edit Post</Title>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        <Form onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label htmlFor="title">Title</Label>
             <Input
               type="text"
-              name="title"
-              value={post.title}
-              onChange={handleChange}
-              placeholder="Post title"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
             />
-          </div>
-          <div>
-            <Label>Excerpt:</Label>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="excerpt">Excerpt</Label>
+            <TextArea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              required
+              rows={3}
+              placeholder="Brief description of your post..."
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
             <Input
               type="text"
-              name="excerpt"
-              value={post.excerpt}
-              onChange={handleChange}
-              placeholder="Brief description"
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="tech, programming, web development"
             />
-          </div>
-          <div>
-            <Label>Tags:</Label>
-            <form onSubmit={handleAddTag}>
-              <TagInput
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag"
-              />
-              <Button type="submit">Add Tag</Button>
-            </form>
-            <TagsContainer>
-              {post.tags.map(tag => (
-                <Tag key={tag}>
-                  {tag}
-                  <button onClick={() => handleRemoveTag(tag)}>&times;</button>
-                </Tag>
-              ))}
-            </TagsContainer>
-          </div>
-        </MetadataSection>
-        <TextArea
-          name="content"
-          value={post.content}
-          onChange={handleChange}
-          placeholder="Write your post content in Markdown..."
-        />
-        <Button onClick={handleSave}>Save Post</Button>
-      </EditorSection>
-      
-      <EditorSection>
-        <h2>Preview</h2>
-        <PreviewSection>
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="content">Content (Markdown supported)</Label>
+            <TextArea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              rows={15}
+              placeholder="Write your post content here..."
+            />
+          </FormGroup>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </Form>
+      </EditorContainer>
+
+      <PreviewContainer>
+        <PreviewTitle>Preview</PreviewTitle>
+        <MarkdownPreview>
+          <h1>{title}</h1>
+          <p><em>{excerpt}</em></p>
+          {tags && (
+            <p>
+              Tags: {tags.split(',').map(tag => tag.trim()).join(', ')}
+            </p>
+          )}
+          <hr />
           <ReactMarkdown
             components={{
               code({node, inline, className, children, ...props}) {
@@ -343,11 +345,11 @@ function BlogEditor() {
               }
             }}
           >
-            {post.content}
+            {content}
           </ReactMarkdown>
-        </PreviewSection>
-      </EditorSection>
-    </EditorContainer>
+        </MarkdownPreview>
+      </PreviewContainer>
+    </PageWrapper>
   );
 }
 
