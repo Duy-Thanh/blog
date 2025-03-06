@@ -36,7 +36,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.DEPLOY_KEY }}
-          external_repository: Duy-Thanh/Duy-Thanh.github.io
+          external_repository: Duy-Thanh/blog
           publish_branch: gh-pages
           publish_dir: ./build
           force_orphan: true 
