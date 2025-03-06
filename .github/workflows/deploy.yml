@@ -31,6 +31,10 @@ jobs:
           -----END PRIVATE KEY-----`;
           EOL
 
+      - name: Create Encrypted Credentials
+        run: |
+          echo "${{ secrets.ENCRYPTED_CREDENTIALS }}" > public/encrypted-credentials.json
+
       - name: Build
         env:
           CI: false
