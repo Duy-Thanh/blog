@@ -36,7 +36,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "CI=false GENERATE_SOURCEMAP=false react-app-rewired build",
-    "postbuild": "node ./scripts/optimize.js",
+    "postbuild": "",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "predeploy": "yarn build",
