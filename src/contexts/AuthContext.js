@@ -1,31 +1,23 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { getSupabase } from '../supabase/config';
+import { supabase } from '../supabase/config';
 
 export const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [supabaseClient, setSupabaseClient] = useState(null);
 
   useEffect(() => {
     let mounted = true;
-    let authSubscription = null;
 
-    async function initializeAuth() {
+    async function initAuth() {
       try {
-        // Get initialized Supabase client
-        const client = await getSupabase();
-        if (!mounted) return;
-        
-        setSupabaseClient(client);
-        
         // Set initial user
-        const { data: { user: initialUser } } = await client.auth.getUser();
+        const { data: { user: initialUser } } = await supabase.auth.getUser();
         if (mounted) setUser(initialUser);
 
         // Listen for auth changes
-        authSubscription = client.auth.onAuthStateChange(
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (mounted) {
               setUser(session?.user ?? null);
@@ -33,6 +25,11 @@ export const AuthProvider = ({ children }) => {
             }
           }
         );
+
+        // Return cleanup function
+        return () => {
+          subscription?.unsubscribe();
+        };
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) setUser(null);
@@ -41,22 +38,22 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    initializeAuth();
+    const cleanup = initAuth();
 
     return () => {
       mounted = false;
-      authSubscription?.unsubscribe();
+      // Execute cleanup function if it exists
+      cleanup.then(cleanupFn => cleanupFn?.());
     };
   }, []);
 
   const value = {
     user,
     loading,
-    supabase: supabaseClient,
-    isInitialized: !!supabaseClient
+    supabase,
+    isInitialized: true
   };
 
-  // Only render children when Supabase is initialized
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}

@@ -1,5 +1,4 @@
 import { getSupabase } from '../supabase/config';
-import { decryptData } from '../utils/encryption';
 
 let cachedCredentials = null;
 let isDecrypting = false;
@@ -19,11 +18,7 @@ const loadEncryptedCredentials = async () => {
   try {
     isDecrypting = true;
     const response = await fetch(process.env.REACT_APP_ENCRYPTED_CREDENTIALS_PATH);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
     const data = await response.json();
-    console.log('Encrypted credentials loaded:', data);
     cachedCredentials = data;
     return data;
   } finally {
