@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { blogService } from '../services/blogService';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAuth } from '../contexts/AuthContext';
+import { blogService } from '../services/blogService';
 
-const PageWrapper = styled.div`
+const PageWrapper = styled(motion.div)`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
@@ -20,21 +21,31 @@ const PageWrapper = styled.div`
   }
 `;
 
-const EditorContainer = styled.div`
+const EditorContainer = styled(motion.div)`
   background: #1E1E1E;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
 `;
 
-const PreviewContainer = styled.div`
+const PreviewContainer = styled(motion.div)`
   background: #1E1E1E;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
 `;
 
-const Title = styled.h1`
+const Title = styled(motion.h1)`
   color: #2ADFFF;
   margin-bottom: 2rem;
 `;
@@ -44,13 +55,13 @@ const PreviewTitle = styled.h2`
   margin-bottom: 2rem;
 `;
 
-const Form = styled.form`
+const Form = styled(motion.form)`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 `;
 
-const FormGroup = styled.div`
+const FormGroup = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -61,7 +72,7 @@ const Label = styled.label`
   font-size: 0.9rem;
 `;
 
-const Input = styled.input`
+const Input = styled(motion.input)`
   width: 100%;
   padding: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
@@ -69,14 +80,16 @@ const Input = styled.input`
   border-radius: 8px;
   color: #fff;
   font-size: 1rem;
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
     border-color: #2ADFFF;
+    box-shadow: 0 0 10px rgba(42, 223, 255, 0.2);
   }
 `;
 
-const TextArea = styled.textarea`
+const TextArea = styled(motion.textarea)`
   width: 100%;
   height: 400px;
   padding: 1rem;
@@ -87,14 +100,16 @@ const TextArea = styled.textarea`
   font-size: 1rem;
   font-family: 'JetBrains Mono', monospace;
   resize: vertical;
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
     border-color: #2ADFFF;
+    box-shadow: 0 0 10px rgba(42, 223, 255, 0.2);
   }
 `;
 
-const Button = styled.button`
+const Button = styled(motion.button)`
   background: #2ADFFF;
   color: #1a1a1a;
   border: none;
@@ -180,6 +195,32 @@ const MarkdownPreview = styled.div`
   }
 `;
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
+
 function BlogEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -264,12 +305,16 @@ function BlogEditor() {
   if (!post) return <div>Post not found</div>;
 
   return (
-    <PageWrapper>
-      <EditorContainer>
-        <Title>Edit Post</Title>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+    <PageWrapper
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <EditorContainer variants={itemVariants}>
+        <Title variants={itemVariants}>Edit Post</Title>
+        {error && <ErrorMessage variants={itemVariants}>{error}</ErrorMessage>}
         <Form onSubmit={handleSubmit}>
-          <FormGroup>
+          <FormGroup variants={itemVariants}>
             <Label htmlFor="title">Title</Label>
             <Input
               type="text"
@@ -277,9 +322,10 @@ function BlogEditor() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              whileFocus={{ scale: 1.01 }}
             />
           </FormGroup>
-          <FormGroup>
+          <FormGroup variants={itemVariants}>
             <Label htmlFor="excerpt">Excerpt</Label>
             <TextArea
               id="excerpt"
@@ -288,9 +334,10 @@ function BlogEditor() {
               required
               rows={3}
               placeholder="Brief description of your post..."
+              whileFocus={{ scale: 1.01 }}
             />
           </FormGroup>
-          <FormGroup>
+          <FormGroup variants={itemVariants}>
             <Label htmlFor="tags">Tags (comma-separated)</Label>
             <Input
               type="text"
@@ -298,9 +345,10 @@ function BlogEditor() {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="tech, programming, web development"
+              whileFocus={{ scale: 1.01 }}
             />
           </FormGroup>
-          <FormGroup>
+          <FormGroup variants={itemVariants}>
             <Label htmlFor="content">Content (Markdown supported)</Label>
             <TextArea
               id="content"
@@ -309,16 +357,23 @@ function BlogEditor() {
               required
               rows={15}
               placeholder="Write your post content here..."
+              whileFocus={{ scale: 1.01 }}
             />
           </FormGroup>
-          <Button type="submit" disabled={saving}>
+          <Button
+            type="submit"
+            disabled={saving}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </Form>
       </EditorContainer>
 
-      <PreviewContainer>
-        <PreviewTitle>Preview</PreviewTitle>
+      <PreviewContainer variants={itemVariants}>
+        <Title variants={itemVariants}>Preview</Title>
         <MarkdownPreview>
           <h1>{title}</h1>
           <p><em>{excerpt}</em></p>

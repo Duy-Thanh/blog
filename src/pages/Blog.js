@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, FaCalendar, FaClock, FaStar, 
   FaEnvelope, FaEdit, FaTrash
@@ -10,20 +11,34 @@ import { AuthContext } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
 import { useAuth } from '../contexts/AuthContext';
 
-// Keyframes
-export const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+// Enhanced animations
+const fadeIn = keyframes`
+  from { 
+    opacity: 0; 
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
 `;
 
-// Styled components
-const BlogContainer = styled.div`
+const shimmer = keyframes`
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+`;
+
+const BlogContainer = styled(motion.div)`
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 `;
 
-const BlogHeader = styled.div`
+const BlogHeader = styled(motion.div)`
   text-align: center;
   margin-bottom: 4rem;
   padding: 4rem 0;
@@ -31,12 +46,28 @@ const BlogHeader = styled.div`
   color: white;
   border-radius: 15px;
   margin-top: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    animation: ${shimmer} 2s infinite;
+    background-size: 200% 100%;
+  }
 `;
 
-const HeaderTitle = styled.h1`
+const HeaderTitle = styled(motion.h1)`
   font-size: 2.5rem;
   margin-bottom: 1rem;
   color: var(--accent-color);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
 const SearchContainer = styled.div`
@@ -74,7 +105,7 @@ const SearchIcon = styled(FaSearch)`
   color: rgba(255, 255, 255, 0.6);
 `;
 
-const BlogGrid = styled.div`
+const BlogGrid = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
@@ -126,7 +157,7 @@ const PageButton = styled.button`
   }
 `;
 
-const NewPostButton = styled(Link)`
+const NewPostButton = styled(motion(Link))`
   position: fixed;
   bottom: 2rem;
   right: 2rem;
@@ -134,7 +165,7 @@ const NewPostButton = styled(Link)`
   background: var(--accent-color);
   color: white;
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,10 +173,12 @@ const NewPostButton = styled(Link)`
   font-size: 1.5rem;
   width: 60px;
   height: 60px;
-  transition: transform 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
 
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(180deg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   }
 `;
 
@@ -181,6 +214,29 @@ const ActionButton = styled.button`
     opacity: 0.9;
   }
 `;
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100
+    }
+  }
+};
 
 function Blog() {
   const { user, isInitialized } = useAuth();
@@ -269,10 +325,30 @@ function Blog() {
   }
 
   return (
-    <BlogContainer>
-      <BlogHeader>
-        <HeaderTitle>Tech Blog</HeaderTitle>
-        <p>Exploring the latest in web development and technology</p>
+    <BlogContainer
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <BlogHeader
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 100 }}
+      >
+        <HeaderTitle
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          Tech Blog
+        </HeaderTitle>
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          Exploring the latest in web development and technology
+        </motion.p>
         <SearchContainer>
           <SearchIcon />
           <SearchInput
@@ -284,26 +360,45 @@ function Blog() {
         </SearchContainer>
         
         <FiltersContainer>
-          {categories.map(category => (
-            <FilterButton
-              key={category}
-              $active={category === selectedCategory}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </FilterButton>
-          ))}
+          <AnimatePresence>
+            {categories.map((category, index) => (
+              <motion.div
+                key={category}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <FilterButton
+                  $active={category === selectedCategory}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </FilterButton>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </FiltersContainer>
       </BlogHeader>
 
-      <BlogGrid>
-        {currentPosts.map(post => (
-          <BlogPost
-            key={post.id}
-            post={post}
-            isAuthor={user?.id === post.author_id}
-          />
-        ))}
+      <BlogGrid variants={containerVariants}>
+        <AnimatePresence>
+          {currentPosts.map((post, index) => (
+            <motion.div
+              key={post.id}
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <BlogPost
+                post={post}
+                isAuthor={user?.id === post.author_id}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </BlogGrid>
 
       <Pagination>
@@ -319,7 +414,11 @@ function Blog() {
       </Pagination>
 
       {user && (
-        <NewPostButton to="/blog/new-post">
+        <NewPostButton
+          to="new-post"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
           <FaEdit />
         </NewPostButton>
       )}
