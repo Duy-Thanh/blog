@@ -33,7 +33,12 @@ jobs:
 
       - name: Create Encrypted Credentials
         run: |
-          echo "${{ secrets.ENCRYPTED_CREDENTIALS }}" > public/encrypted-credentials.json
+          echo '{
+            "data": "${{ secrets.ENCRYPTED_CREDENTIALS }}",
+            "iv": "${{ secrets.ENCRYPTED_IV }}",
+            "authTag": "${{ secrets.ENCRYPTED_AUTH_TAG }}",
+            "encryptedKey": "${{ secrets.ENCRYPTED_KEY }}"
+          }' > public/encrypted-credentials.json
 
       - name: Create Environment File
         run: |
