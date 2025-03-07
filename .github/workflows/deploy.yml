@@ -52,8 +52,8 @@ jobs:
       - name: Build
         env:
           CI: false
-          REACT_APP_SUPABASE_URL=${{ secrets.REACT_APP_SUPABASE_URL }}
-          REACT_APP_SUPABASE_ANON_KEY=${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+          REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
         run: yarn build
 
       - name: Deploy
@@ -62,8 +62,8 @@ jobs:
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           external_repository: Duy-Thanh/blog
           publish_branch: gh-pages
-          publish_dir: ./build          
+          publish_dir: ./build
           force_orphan: true
         env:
-          REACT_APP_SUPABASE_URL=${{ secrets.REACT_APP_SUPABASE_URL }}
-          REACT_APP_SUPABASE_ANON_KEY=${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+          REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
