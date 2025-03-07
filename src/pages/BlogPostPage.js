@@ -1,106 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
-import { FaCalendar, FaClock } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { FaCalendar, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
+import ConfirmModal from '../components/ConfirmModal';
 
-const PageWrapper = styled.div`
-  background-color: #1a1a1a;
-  min-height: 100vh;
-  margin: 0;
-  padding: 2rem 1rem;
-  padding-bottom: 6rem;
-  position: relative;
+const PageWrapper = styled(motion.div)`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 `;
 
-const PostContainer = styled.div`
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
+const PostContainer = styled(motion.article)`
   background: #1E1E1E;
+  padding: 3rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2ADFFF, #FF69B4, #2ADFFF);
+    background-size: 200% 100%;
+    animation: gradient 3s linear infinite;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 `;
 
-const Title = styled.h1`
+const PostTitle = styled(motion.h1)`
   color: #2ADFFF;
-  margin-bottom: 1rem;
-`;
-
-const Meta = styled.div`
-  color: #888;
-  font-size: 0.9rem;
+  font-size: 3rem;
   margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(42, 223, 255, 0.2);
+`;
+
+const PostMeta = styled(motion.div)`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2rem;
+  color: #888;
+  font-size: 1rem;
+  margin-bottom: 3rem;
   align-items: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const Content = styled.div`
-  color: #fff;
-  line-height: 1.6;
+const MetaItem = styled(motion.span)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   
-  h1, h2, h3, h4, h5, h6 {
+  svg {
     color: #2ADFFF;
-    margin: 1.5rem 0 1rem;
-  }
-
-  p {
-    margin-bottom: 1rem;
-  }
-
-  code {
-    font-family: 'JetBrains Mono', monospace;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-  }
-
-  pre {
-    margin: 1rem 0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  a {
-    color: #2ADFFF;
-    text-decoration: none;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin: 1rem 0;
-  }
-
-  blockquote {
-    border-left: 4px solid #2ADFFF;
-    margin: 1rem 0;
-    padding-left: 1rem;
-    color: #888;
-  }
-
-  ul, ol {
-    margin: 1rem 0;
-    padding-left: 2rem;
   }
 `;
 
-const ButtonGroup = styled.div`
+const ButtonGroup = styled(motion.div)`
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+  justify-content: center;
 `;
 
-const Button = styled.button`
+const Button = styled(motion.button)`
   background: ${props => props.danger ? '#ff4444' : '#2ADFFF'};
   color: #1a1a1a;
   border: none;
@@ -110,11 +91,6 @@ const Button = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px ${props => props.danger ? 'rgba(255, 68, 68, 0.2)' : 'rgba(42, 223, 255, 0.2)'};
-  }
 `;
 
 const ErrorMessage = styled.div`
@@ -124,39 +100,6 @@ const ErrorMessage = styled.div`
   background: rgba(255, 68, 68, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 68, 68, 0.2);
-`;
-
-const PostTitle = styled.h1`
-  color: #2ADFFF;
-  font-size: 3rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-weight: 700;
-  
-  text-shadow: 0 0 20px rgba(42, 223, 255, 0.2);
-`;
-
-const PostMeta = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  color: #888;
-  font-size: 1rem;
-  margin-bottom: 3rem;
-  align-items: center;
-  
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const MetaItem = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  svg {
-    color: #2ADFFF;
-  }
 `;
 
 const PostContent = styled.div`
@@ -291,7 +234,7 @@ const PostContent = styled.div`
   }
 `;
 
-const TagsContainer = styled.div`
+const TagsContainer = styled(motion.div)`
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
@@ -301,7 +244,7 @@ const TagsContainer = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const Tag = styled.span`
+const Tag = styled(motion.span)`
   background: rgba(42, 223, 255, 0.1);
   color: #2ADFFF;
   padding: 0.5rem 1rem;
@@ -326,6 +269,31 @@ const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
 `;
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      type: "spring",
+      stiffness: 100
+    }
+  }
+};
+
 function BlogPostPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -333,6 +301,7 @@ function BlogPostPage() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -364,13 +333,14 @@ function BlogPostPage() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) {
-      return;
-    }
+    setIsDeleteModalOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       await blogService.deletePost(post.id);
-      navigate('/blog');
+      setIsDeleteModalOpen(false);
+      navigate('/');
     } catch (error) {
       console.error('Error deleting post:', error);
       setError(error.message);
@@ -399,59 +369,105 @@ function BlogPostPage() {
   return (
     <>
       <GlobalStyle />
-      <PageWrapper>
-        <PostContainer>
-          <PostTitle>{post.title}</PostTitle>
-          <PostMeta>
-            <MetaItem>
+      <PageWrapper
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <PostContainer variants={itemVariants}>
+          <PostTitle variants={itemVariants}>
+            {post.title}
+          </PostTitle>
+          
+          <PostMeta variants={itemVariants}>
+            <MetaItem variants={itemVariants}>
               <FaCalendar />
               {formatDate(post.created_at)}
             </MetaItem>
-            <MetaItem>
+            <MetaItem variants={itemVariants}>
               <FaClock />
               {calculateReadTime(post.content)}
             </MetaItem>
           </PostMeta>
-          <PostContent>
-            <ReactMarkdown
-              components={{
-                code({node, inline, className, children, ...props}) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  return !inline && match ? (
-                    <SyntaxHighlighter
-                      style={vscDarkPlus}
-                      language={match[1]}
-                      PreTag="div"
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  );
-                }
-              }}
-            >
-              {post.content}
-            </ReactMarkdown>
-          </PostContent>
+
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <PostContent>
+              <ReactMarkdown
+                components={{
+                  code({node, inline, className, children, ...props}) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    return !inline && match ? (
+                      <SyntaxHighlighter
+                        style={vscDarkPlus}
+                        language={match[1]}
+                        PreTag="div"
+                        {...props}
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                }}
+              >
+                {post.content}
+              </ReactMarkdown>
+            </PostContent>
+          </motion.div>
+
           {post.tags && post.tags.length > 0 && (
-            <TagsContainer>
-              {post.tags.map((tag, index) => (
-                <Tag key={index}>{tag}</Tag>
-              ))}
+            <TagsContainer variants={itemVariants}>
+              <AnimatePresence>
+                {post.tags.map((tag, index) => (
+                  <Tag
+                    key={index}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {tag}
+                  </Tag>
+                ))}
+              </AnimatePresence>
             </TagsContainer>
           )}
+
           {user && user.id === post.user_id && (
-            <ButtonGroup>
-              <Button onClick={handleEdit}>Edit Post</Button>
-              <Button danger onClick={handleDelete}>Delete Post</Button>
+            <ButtonGroup variants={itemVariants}>
+              <Button
+                onClick={handleEdit}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaEdit /> Edit Post
+              </Button>
+              <Button
+                danger
+                onClick={handleDelete}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaTrash /> Delete Post
+              </Button>
             </ButtonGroup>
           )}
         </PostContainer>
       </PageWrapper>
+      
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+      />
     </>
   );
 }
