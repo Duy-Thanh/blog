@@ -8,7 +8,7 @@ import BlogPost from '../components/BlogPost';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
-import { supabase } from '../supabase/config';
+import { useAuth } from '../contexts/AuthContext';
 
 // Keyframes
 export const fadeIn = keyframes`
@@ -183,11 +183,12 @@ const ActionButton = styled.button`
 `;
 
 function Blog() {
-  const { user } = useContext(AuthContext) || { user: null };
+  const { user, isInitialized } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Add missing state variables
+  // Add state variables
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -218,25 +219,32 @@ function Blog() {
   // Update the posts data with calculated read time
   useEffect(() => {
     const loadPosts = async () => {
+      if (!isInitialized) return;
+      
       try {
+        setLoading(true);
+        setError(null);
         const data = await blogService.getPosts();
+        
         // Add calculated read time to each post
         const postsWithReadTime = data.map(post => ({
           ...post,
           readTime: calculateReadTime(post.content),
           formattedDate: formatDate(post.created_at)
         }));
+        
         setPosts(postsWithReadTime);
         setTotalPages(Math.ceil(data.length / 10));
       } catch (error) {
         console.error('Error loading posts:', error);
+        setError('Failed to load blog posts. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
     loadPosts();
-  }, []);
+  }, [isInitialized]);
 
   // Filter posts based on search and category
   const filteredPosts = posts.filter(post => {
@@ -252,23 +260,13 @@ function Blog() {
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
 
-  const handleDelete = async (postId) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        const { error } = await supabase
-          .from('posts')
-          .delete()
-          .eq('id', postId);
+  if (loading) {
+    return <div>Loading blog posts...</div>;
+  }
 
-        if (error) throw error;
-
-        // Remove post from local state
-        setPosts(posts.filter(post => post.id !== postId));
-      } catch (error) {
-        console.error('Error deleting post:', error);
-      }
-    }
-  };
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <BlogContainer>
@@ -279,11 +277,12 @@ function Blog() {
           <SearchIcon />
           <SearchInput
             type="text"
-            placeholder="Search articles..."
+            placeholder="Search posts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </SearchContainer>
+        
         <FiltersContainer>
           {categories.map(category => (
             <FilterButton
@@ -291,47 +290,38 @@ function Blog() {
               $active={category === selectedCategory}
               onClick={() => setSelectedCategory(category)}
             >
-              {category}
+              {category.charAt(0).toUpperCase() + category.slice(1)}
             </FilterButton>
           ))}
         </FiltersContainer>
       </BlogHeader>
 
       <BlogGrid>
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <>
-            {currentPosts.map(post => (
-              <BlogPost 
-                key={post.id}
-                post={post}
-                isAdmin={user && user.email === 'thanhdz167@gmail.com'}
-                onEdit={(id) => navigate(`/blog/editor/${id}`)}
-                onDelete={handleDelete}
-              />
-            ))}
-            {user && (
-              <NewPostButton to="/blog/new" title="Create new post">
-                +
-              </NewPostButton>
-            )}
-          </>
-        )}
+        {currentPosts.map(post => (
+          <BlogPost
+            key={post.id}
+            post={post}
+            isAuthor={user?.id === post.author_id}
+          />
+        ))}
       </BlogGrid>
 
-      {totalPages > 1 && (
-        <Pagination>
-          {[...Array(totalPages)].map((_, index) => (
-            <PageButton
-              key={index + 1}
-              $active={currentPage === index + 1}
-              onClick={() => setCurrentPage(index + 1)}
-            >
-              {index + 1}
-            </PageButton>
-          ))}
-        </Pagination>
+      <Pagination>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <PageButton
+            key={i + 1}
+            $active={currentPage === i + 1}
+            onClick={() => setCurrentPage(i + 1)}
+          >
+            {i + 1}
+          </PageButton>
+        ))}
+      </Pagination>
+
+      {user && (
+        <NewPostButton to="/blog/new-post">
+          <FaEdit />
+        </NewPostButton>
       )}
     </BlogContainer>
   );

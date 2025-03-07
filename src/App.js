@@ -16,7 +16,7 @@ import './styles/App.css';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/blog">
         <div className="App">
           <Navbar />
           <main>
@@ -24,10 +24,10 @@ function App() {
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/new-post" element={<NewBlogPost />} />
                 <Route path="/blog/editor" element={<BlogEditor />} />
                 <Route path="/blog/editor/:id" element={<BlogEditor />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
-                <Route path="/blog/new" element={<NewBlogPost />} />
                 <Route path="/about" element={<About />} />
               </Route>
             </Routes>

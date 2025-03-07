@@ -1,7 +1,8 @@
-import { supabase } from '../supabase/config';
+import { getSupabase } from '../supabase/config';
 
 export const authService = {
   async signIn(email, password) {
+    const supabase = await getSupabase();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -11,11 +12,22 @@ export const authService = {
   },
 
   async signOut() {
+    const supabase = await getSupabase();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
 
-  getCurrentUser() {
-    return supabase.auth.getUser();
+  async getCurrentUser() {
+    const supabase = await getSupabase();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  },
+
+  async getSession() {
+    const supabase = await getSupabase();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session;
   }
 }; 

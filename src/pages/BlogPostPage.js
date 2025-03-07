@@ -329,13 +329,15 @@ const GlobalStyle = createGlobalStyle`
 function BlogPostPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPost = async () => {
+      if (!isInitialized) return;
+      
       try {
         console.log('Fetching post with slug:', slug);
         const data = await blogService.getPostBySlug(slug);
@@ -355,21 +357,23 @@ function BlogPostPage() {
     if (slug) {
       fetchPost();
     }
-  }, [slug]);
+  }, [slug, isInitialized]);
 
   const handleEdit = () => {
     navigate(`/blog/editor/${post.id}`);
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        await blogService.deletePost(post.id);
-        navigate('/blog');
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        setError(error.message);
-      }
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    try {
+      await blogService.deletePost(post.id);
+      navigate('/blog');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setError(error.message);
     }
   };
 

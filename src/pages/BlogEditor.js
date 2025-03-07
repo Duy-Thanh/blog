@@ -183,7 +183,7 @@ const MarkdownPreview = styled.div`
 function BlogEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   const [post, setPost] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -195,6 +195,8 @@ function BlogEditor() {
 
   useEffect(() => {
     const fetchPost = async () => {
+      if (!isInitialized) return;
+      
       try {
         console.log('Fetching post with ID:', id);
         const data = await blogService.getPost(id);
@@ -217,8 +219,10 @@ function BlogEditor() {
 
     if (id) {
       fetchPost();
+    } else {
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, isInitialized]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -256,7 +260,7 @@ function BlogEditor() {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!post) return <div>Post not found</div>;
 
   return (

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
+import styled from 'styled-components';
+import { getSupabase } from '../supabase/config';
 
 const LoginContainer = styled(motion.div)`
   max-width: 400px;
@@ -295,17 +295,46 @@ export const Login = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [supabaseClient, setSupabaseClient] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const initSupabase = async () => {
+      try {
+        const client = await getSupabase();
+        setSupabaseClient(client);
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        setError('Failed to initialize authentication system');
+      }
+    };
+    
+    initSupabase();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!supabaseClient) {
+      setError('Authentication system not ready. Please try again.');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      await authService.signIn(email, password);
+      setError(null);
+      
+      const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (signInError) throw signInError;
+
       onSuccess?.();
       navigate('/blog');
     } catch (error) {
-      setError(error.message);
+      console.error('Login error:', error);
+      setError('Invalid login credentials');
     } finally {
       setIsLoading(false);
     }
@@ -333,7 +362,7 @@ export const Login = ({ onSuccess }) => {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            Invalid login credentials
+            {error}
           </ErrorMessage>
         )}
         
@@ -351,6 +380,7 @@ export const Login = ({ onSuccess }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
               required
+              disabled={isLoading || !supabaseClient}
             />
           </InputWrapper>
           
@@ -367,6 +397,7 @@ export const Login = ({ onSuccess }) => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
+              disabled={isLoading || !supabaseClient}
             />
           </InputWrapper>
           
@@ -377,7 +408,7 @@ export const Login = ({ onSuccess }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            disabled={isLoading}
+            disabled={isLoading || !supabaseClient}
           >
             {isLoading ? (
               <LoadingSpinner

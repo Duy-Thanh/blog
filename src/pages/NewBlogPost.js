@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { getSupabase } from '../supabase/config';
-import { blogService } from '../services/blogService';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAuth } from '../contexts/AuthContext';
+import { blogService } from '../services/blogService';
 
 const PageWrapper = styled.div`
   display: flex;
@@ -182,7 +181,7 @@ function NewBlogPost() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
 
   const generateSlug = (text) => {
     return text
@@ -194,6 +193,11 @@ function NewBlogPost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!isInitialized) {
+      setError('Please wait for initialization');
+      return;
+    }
+
     if (!user) {
       setError('You must be logged in to create a post');
       return;
@@ -222,6 +226,14 @@ function NewBlogPost() {
       setLoading(false);
     }
   };
+
+  if (!isInitialized) {
+    return <div>Initializing...</div>;
+  }
+
+  if (!user) {
+    return <div>Please log in to create a post</div>;
+  }
 
   return (
     <PageWrapper>
