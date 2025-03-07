@@ -8,137 +8,186 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAuth } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
 
-const PageWrapper = styled(motion.div)`
+const PageWrapper = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  max-width: 1600px;
-  margin: 2rem auto;
-  padding: 0 2rem;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+  grid-template-columns: 1fr;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: clamp(0.5rem, 2vw, 1rem);
+  min-height: calc(100vh - 80px); // Account for navbar height
+  width: 100%;
+  margin: 0 auto;
+  
+  @media screen and (min-width: 1024px) {
+    grid-template-columns: 1fr 1fr;
+    padding: clamp(1rem, 3vw, 2rem);
+    max-width: 1400px;
   }
 `;
 
 const EditorContainer = styled(motion.div)`
   background: #1E1E1E;
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
+  width: 100%;
+  margin-bottom: 1rem;
+  
+  @media screen and (min-width: 1024px) {
+    position: sticky;
+    top: 90px;
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border-radius: 12px;
+    margin-bottom: 0;
   }
 `;
 
-const PreviewContainer = styled(motion.div)`
+const PreviewContainer = styled.div`
   background: #1E1E1E;
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
+  width: 100%;
+  
+  @media screen and (min-width: 1024px) {
+    position: sticky;
+    top: 90px;
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border-radius: 12px;
   }
 `;
 
 const Title = styled(motion.h1)`
   color: #2ADFFF;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+  
+  @media screen and (min-width: 768px) {
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
 `;
 
 const PreviewTitle = styled.h2`
   color: #2ADFFF;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+  text-align: center;
 `;
 
 const Form = styled(motion.form)`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  
+  @media screen and (min-width: 768px) {
+    gap: clamp(1rem, 3vw, 1.5rem);
+  }
 `;
 
 const FormGroup = styled(motion.div)`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
+  width: 100%;
+  
+  @media screen and (min-width: 768px) {
+    gap: clamp(0.3rem, 1vw, 0.5rem);
+  }
 `;
 
 const Label = styled.label`
   color: #888;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+  
+  @media screen and (min-width: 768px) {
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+  }
 `;
 
 const Input = styled(motion.input)`
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.6rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(42, 223, 255, 0.2);
   border-radius: 8px;
   color: #fff;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-
+  font-size: 0.9rem;
+  
   &:focus {
     outline: none;
     border-color: #2ADFFF;
     box-shadow: 0 0 10px rgba(42, 223, 255, 0.2);
+  }
+
+  @media screen and (min-width: 768px) {
+    padding: clamp(0.6rem, 2vw, 0.8rem);
+    font-size: clamp(0.9rem, 2vw, 1rem);
   }
 `;
 
 const TextArea = styled(motion.textarea)`
   width: 100%;
-  height: 400px;
-  padding: 1rem;
+  min-height: 150px;
+  height: 200px;
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(42, 223, 255, 0.2);
   border-radius: 8px;
   color: #fff;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-family: 'JetBrains Mono', monospace;
+  line-height: 1.6;
   resize: vertical;
-  transition: all 0.3s ease;
-
+  
   &:focus {
     outline: none;
     border-color: #2ADFFF;
     box-shadow: 0 0 10px rgba(42, 223, 255, 0.2);
   }
+
+  @media screen and (min-width: 768px) {
+    min-height: 200px;
+    height: clamp(300px, 50vh, 500px);
+    padding: clamp(0.8rem, 2vw, 1rem);
+    font-size: clamp(0.9rem, 2vw, 1rem);
+  }
 `;
 
 const Button = styled(motion.button)`
+  width: 100%;
+  padding: 0.8rem;
   background: #2ADFFF;
-  color: #1a1a1a;
+  color: #1E1E1E;
   border: none;
-  padding: 0.8rem 2rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-
+  margin-top: 1rem;
+  
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(42, 223, 255, 0.2);
   }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
+  
+  @media screen and (min-width: 768px) {
+    width: auto;
+    align-self: flex-end;
+    padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(0.9rem, 2vw, 1rem);
   }
 `;
 
 const ErrorMessage = styled.div`
   color: #ff4444;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: clamp(0.8rem, 2vw, 1rem);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
   background: rgba(255, 68, 68, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 68, 68, 0.2);
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
 `;
 
 const MarkdownPreview = styled.div`
@@ -147,11 +196,13 @@ const MarkdownPreview = styled.div`
   
   h1, h2, h3, h4, h5, h6 {
     color: #2ADFFF;
-    margin: 1.5rem 0 1rem;
+    margin: clamp(1.2rem, 3vw, 1.5rem) 0 clamp(0.8rem, 2vw, 1rem);
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
   }
 
   p {
-    margin-bottom: 1rem;
+    margin-bottom: clamp(0.8rem, 2vw, 1rem);
+    font-size: clamp(0.9rem, 2vw, 1rem);
   }
 
   code {
@@ -159,39 +210,42 @@ const MarkdownPreview = styled.div`
     background: rgba(255, 255, 255, 0.1);
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
+    font-size: clamp(0.85rem, 2vw, 0.9rem);
   }
 
   pre {
-    margin: 1rem 0;
+    margin: clamp(1rem, 3vw, 1.5rem) 0;
     border-radius: 8px;
-    overflow: hidden;
-  }
-
-  a {
-    color: #2ADFFF;
-    text-decoration: none;
+    overflow-x: auto;
     
-    &:hover {
-      text-decoration: underline;
+    @media screen and (max-width: 768px) {
+      margin: 1rem 0;
     }
   }
 
   img {
     max-width: 100%;
+    height: auto;
     border-radius: 8px;
-    margin: 1rem 0;
+    margin: clamp(1rem, 3vw, 1.5rem) 0;
   }
 
   blockquote {
     border-left: 4px solid #2ADFFF;
-    margin: 1rem 0;
-    padding-left: 1rem;
-    color: #888;
+    margin: clamp(1rem, 3vw, 1.5rem) 0;
+    padding: clamp(0.8rem, 2vw, 1rem);
+    background: rgba(42, 223, 255, 0.1);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
   }
 
   ul, ol {
-    margin: 1rem 0;
-    padding-left: 2rem;
+    margin: clamp(1rem, 3vw, 1.5rem) 0;
+    padding-left: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  li {
+    margin-bottom: clamp(0.4rem, 1vw, 0.5rem);
   }
 `;
 
@@ -301,7 +355,7 @@ function BlogEditor() {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (error) return <ErrorMessage variants={itemVariants}>{error}</ErrorMessage>;
   if (!post) return <div>Post not found</div>;
 
   return (

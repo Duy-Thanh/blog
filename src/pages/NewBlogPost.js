@@ -8,91 +8,100 @@ import { useAuth } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
 
 const PageWrapper = styled.div`
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1rem, 3vw, 2rem);
   max-width: 1600px;
-  margin: 2rem auto;
-  padding: 0 2rem;
+  margin: 0 auto;
+  
+  @media screen and (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const EditorContainer = styled.div`
-  flex: 1;
-  padding: 2rem;
   background: #1E1E1E;
+  padding: clamp(1rem, 3vw, 2rem);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  
+  @media screen and (max-width: 768px) {
+    border-radius: 8px;
+  }
 `;
 
 const PreviewContainer = styled.div`
-  flex: 1;
-  padding: 2rem;
   background: #1E1E1E;
+  padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
+  position: sticky;
+  top: 2rem;
+
+  @media screen and (max-width: 1024px) {
+    position: static;
+  }
+
+  @media screen and (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Title = styled.h1`
   color: #2ADFFF;
   margin-bottom: 2rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.8rem;
-  margin-bottom: 1rem;
+  padding: clamp(0.6rem, 2vw, 0.8rem);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(42, 223, 255, 0.2);
   border-radius: 8px;
   color: #fff;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
 
-  &:focus {
-    outline: none;
-    border-color: #2ADFFF;
+  @media screen and (max-width: 768px) {
+    padding: 0.6rem;
   }
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
-  height: 400px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  min-height: clamp(200px, 50vh, 600px);
+  padding: clamp(0.6rem, 2vw, 0.8rem);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(42, 223, 255, 0.2);
   border-radius: 8px;
   color: #fff;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   font-family: 'JetBrains Mono', monospace;
+  line-height: 1.6;
   resize: vertical;
 
-  &:focus {
-    outline: none;
-    border-color: #2ADFFF;
+  @media screen and (max-width: 768px) {
+    min-height: 150px;
+    padding: 0.6rem;
   }
 `;
 
 const Button = styled.button`
   background: #2ADFFF;
   color: #1a1a1a;
+  padding: clamp(0.6rem, 2vw, 1rem) clamp(1.2rem, 4vw, 2rem);
   border: none;
-  padding: 0.8rem 2rem;
   border-radius: 8px;
-  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: clamp(0.875rem, 2vw, 1rem);
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(42, 223, 255, 0.2);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
+  @media screen and (max-width: 768px) {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 0.9rem;
   }
 `;
 
@@ -159,11 +168,16 @@ const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  @media screen and (max-width: 768px) {
+    margin-bottom: 1rem;
+  }
 `;
 
 const Label = styled.label`
   color: #888;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
 `;
 
 const ErrorMessage = styled.div`
@@ -173,6 +187,12 @@ const ErrorMessage = styled.div`
   background: rgba(255, 68, 68, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 68, 68, 0.2);
+  font-size: clamp(0.875rem, 2vw, 1rem);
+
+  @media screen and (max-width: 768px) {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
 `;
 
 function NewBlogPost() {

@@ -26,11 +26,20 @@ const Spinner = styled.div`
   border-top: 5px solid #2ADFFF;
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
+  
+  @media screen and (max-width: 768px) {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+  }
 `;
 
 const Message = styled.div`
   color: white;
   margin-top: 1rem;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  text-align: center;
+  padding: 0 1rem;
 `;
 
 const LoadingOverlay = ({ message = "Decrypting..." }) => (

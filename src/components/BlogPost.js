@@ -10,6 +10,10 @@ const PostCard = styled.div`
   transition: transform 0.3s ease;
   position: relative;
   
+  @media screen and (max-width: 768px) {
+    padding: 1rem;
+  }
+
   &:hover {
     transform: translateY(-5px);
   }
@@ -18,7 +22,7 @@ const PostCard = styled.div`
 const PostTitle = styled(Link)`
   color: var(--accent-color);
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   display: block;
   margin-bottom: 1rem;
   
@@ -31,8 +35,13 @@ const PostMeta = styled.div`
   display: flex;
   gap: 1rem;
   color: #888;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  
+  @media screen and (max-width: 480px) {
+    gap: 0.5rem;
+  }
 `;
 
 const MetaItem = styled.span`
@@ -52,18 +61,29 @@ const ActionButtons = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  
+  @media screen and (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 `;
 
 const ActionButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
   transition: all 0.3s ease;
+  width: auto;
+
+  @media screen and (max-width: 480px) {
+    width: 100%;
+  }
 
   &.edit {
     background: var(--accent-color);

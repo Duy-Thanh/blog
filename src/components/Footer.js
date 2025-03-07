@@ -4,8 +4,9 @@ import { FaGithub, FaLinkedin, FaTwitter } from 'react-icons/fa';
 const FooterContainer = styled.footer`
   background: var(--primary-color);
   color: #fff;
-  padding: 2rem 0;
+  padding: clamp(2rem, 4vw, 3rem) 0;
   margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const FooterWrapper = styled.div`
@@ -14,27 +15,35 @@ const FooterWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  gap: clamp(1rem, 3vw, 2rem);
 
   @media screen and (max-width: 768px) {
     flex-direction: column;
     text-align: center;
-    gap: 1rem;
   }
 `;
 
 const SocialIcons = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: clamp(0.8rem, 2vw, 1.2rem);
   
   a {
     color: #fff;
-    font-size: 1.5rem;
-    transition: color 0.3s ease;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
     
     &:hover {
       color: var(--accent-color);
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.1);
     }
+  }
+
+  @media screen and (max-width: 768px) {
+    margin-top: 1rem;
   }
 `;
 

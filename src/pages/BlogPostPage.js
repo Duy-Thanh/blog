@@ -13,58 +13,55 @@ import ConfirmModal from '../components/ConfirmModal';
 const PageWrapper = styled(motion.div)`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 `;
 
 const PostContainer = styled(motion.article)`
   background: #1E1E1E;
-  padding: 3rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #2ADFFF, #FF69B4, #2ADFFF);
-    background-size: 200% 100%;
-    animation: gradient 3s linear infinite;
-  }
-
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  margin: 0 auto;
+  max-width: 900px;
+  width: 100%;
+  
+  @media screen and (max-width: 768px) {
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border-radius: 8px;
   }
 `;
 
 const PostTitle = styled(motion.h1)`
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
   color: #2ADFFF;
-  font-size: 3rem;
-  margin-bottom: 2rem;
   text-align: center;
   font-weight: 700;
-  text-shadow: 0 0 20px rgba(42, 223, 255, 0.2);
+  line-height: 1.3;
 `;
 
 const PostMeta = styled(motion.div)`
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
   color: #888;
-  font-size: 1rem;
-  margin-bottom: 3rem;
-  align-items: center;
-  padding-bottom: 2rem;
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  flex-wrap: wrap;
+  padding-bottom: clamp(1rem, 3vw, 1.5rem);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  @media screen and (max-width: 480px) {
+    gap: 0.75rem;
+  }
 `;
 
-const MetaItem = styled(motion.span)`
+const MetaItem = styled.span`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -74,23 +71,110 @@ const MetaItem = styled(motion.span)`
   }
 `;
 
+const PostContent = styled(motion.div)`
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #2ADFFF;
+    margin: clamp(1.5rem, 4vw, 2rem) 0 clamp(1rem, 2vw, 1.5rem);
+    line-height: 1.4;
+  }
+
+  h1 { font-size: clamp(1.8rem, 4vw, 2.2rem); }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 1.9rem); }
+  h3 { font-size: clamp(1.4rem, 3vw, 1.6rem); }
+
+  p {
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: clamp(1.5rem, 4vw, 2rem) 0;
+  }
+
+  pre {
+    margin: clamp(1.5rem, 4vw, 2rem) 0;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.85rem, 2vw, 0.9rem);
+  }
+
+  blockquote {
+    border-left: 4px solid #2ADFFF;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    margin: clamp(1.5rem, 4vw, 2rem) 0;
+    background: rgba(42, 223, 255, 0.1);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+
+  ul, ol {
+    margin: clamp(1rem, 3vw, 1.5rem) 0;
+    padding-left: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+
+  a {
+    color: #2ADFFF;
+    text-decoration: none;
+    transition: all 0.3s ease;
+
+    &:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+  }
+`;
+
 const ButtonGroup = styled(motion.div)`
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin-top: clamp(2rem, 4vw, 3rem);
   justify-content: center;
+  
+  @media screen and (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 `;
 
 const Button = styled(motion.button)`
-  background: ${props => props.danger ? '#ff4444' : '#2ADFFF'};
-  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: clamp(0.6rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.5rem);
   border: none;
-  padding: 0.8rem 2rem;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  background: ${props => props.danger ? '#ff4444' : '#2ADFFF'};
+  color: ${props => props.danger ? '#fff' : '#1E1E1E'};
+  font-size: clamp(0.9rem, 2vw, 1rem);
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 500;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px ${props => props.danger ? 
+      'rgba(255, 68, 68, 0.3)' : 
+      'rgba(42, 223, 255, 0.3)'};
+  }
+
+  @media screen and (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const ErrorMessage = styled.div`
@@ -100,138 +184,6 @@ const ErrorMessage = styled.div`
   background: rgba(255, 68, 68, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 68, 68, 0.2);
-`;
-
-const PostContent = styled.div`
-  color: #FFFFFF;
-  line-height: 1.8;
-  font-size: 1.1rem;
-  
-  h1, h2, h3, h4 {
-    color: #2ADFFF !important; // Force the color to override markdown styles
-    margin: 2.5rem 0 1.5rem;
-    font-weight: 600;
-  }
-
-  h1 {
-    font-size: 2.5rem;
-  }
-
-  h2 {
-    font-size: 2rem;
-  }
-
-  h3 {
-    font-size: 1.75rem;
-  }
-
-  p {
-    margin-bottom: 1.5rem;
-    color: #FFFFFF;
-    line-height: 1.9;
-  }
-
-  a {
-    color: #2ADFFF;
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.3s ease;
-    
-    &:hover {
-      border-bottom-color: #2ADFFF;
-    }
-  }
-
-  ul, ol {
-    margin: 1.5rem 0;
-    padding-left: 2rem;
-    color: #FFFFFF;
-  }
-
-  li {
-    margin-bottom: 0.5rem;
-    color: #FFFFFF;
-  }
-
-  blockquote {
-    margin: 2rem 0;
-    padding: 1rem 2rem;
-    border-left: 4px solid #2ADFFF;
-    background: rgba(42, 223, 255, 0.05);
-    font-style: italic;
-    color: #FFFFFF;
-  }
-
-  strong, em {
-    color: #FFFFFF;
-  }
-
-  pre {
-    margin: 2rem 0;
-    border-radius: 12px;
-    background: #1a1a1a !important;
-    padding: 1.5rem !important;
-    overflow-x: auto;
-    border: 1px solid rgba(42, 223, 255, 0.2);
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.2),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  }
-
-  code {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    background: rgba(42, 223, 255, 0.1);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.9em;
-    color: #2ADFFF;
-  }
-
-  /* Style the syntax highlighting */
-  .token.keyword {
-    color: #ff79c6;
-  }
-
-  .token.function {
-    color: #50fa7b;
-  }
-
-  .token.string {
-    color: #f1fa8c;
-  }
-
-  .token.comment {
-    color: #6272a4;
-  }
-
-  .token.operator {
-    color: #ff79c6;
-  }
-
-  .token.punctuation {
-    color: #f8f8f2;
-  }
-
-  /* Add a subtle gradient to code blocks */
-  .syntax-highlighter {
-    background: linear-gradient(
-      to bottom right,
-      rgba(40, 42, 54, 0.8),
-      rgba(40, 42, 54, 0.9)
-    ) !important;
-  }
-
-  img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin: 2rem 0;
-  }
-
-  hr {
-    margin: 3rem 0;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
 `;
 
 const TagsContainer = styled(motion.div)`
@@ -271,25 +223,26 @@ const GlobalStyle = createGlobalStyle`
 
 // Animation variants
 const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
     transition: {
       duration: 0.6,
-      staggerChildren: 0.1
+      ease: "easeOut"
     }
   }
 };
 
-const itemVariants = {
+const contentVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
+  visible: { 
+    opacity: 1, 
     y: 0,
     transition: {
+      delay: 0.3,
       duration: 0.6,
-      type: "spring",
-      stiffness: 100
+      ease: "easeOut"
     }
   }
 };
@@ -374,24 +327,24 @@ function BlogPostPage() {
         animate="visible"
         variants={containerVariants}
       >
-        <PostContainer variants={itemVariants}>
-          <PostTitle variants={itemVariants}>
+        <PostContainer variants={contentVariants}>
+          <PostTitle variants={contentVariants}>
             {post.title}
           </PostTitle>
           
-          <PostMeta variants={itemVariants}>
-            <MetaItem variants={itemVariants}>
+          <PostMeta variants={contentVariants}>
+            <MetaItem variants={contentVariants}>
               <FaCalendar />
               {formatDate(post.created_at)}
             </MetaItem>
-            <MetaItem variants={itemVariants}>
+            <MetaItem variants={contentVariants}>
               <FaClock />
               {calculateReadTime(post.content)}
             </MetaItem>
           </PostMeta>
 
           <motion.div
-            variants={itemVariants}
+            variants={contentVariants}
             initial="hidden"
             animate="visible"
           >
@@ -423,12 +376,12 @@ function BlogPostPage() {
           </motion.div>
 
           {post.tags && post.tags.length > 0 && (
-            <TagsContainer variants={itemVariants}>
+            <TagsContainer variants={contentVariants}>
               <AnimatePresence>
                 {post.tags.map((tag, index) => (
                   <Tag
                     key={index}
-                    variants={itemVariants}
+                    variants={contentVariants}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -440,7 +393,7 @@ function BlogPostPage() {
           )}
 
           {user && user.id === post.user_id && (
-            <ButtonGroup variants={itemVariants}>
+            <ButtonGroup variants={contentVariants}>
               <Button
                 onClick={handleEdit}
                 whileHover={{ scale: 1.05 }}

@@ -29,6 +29,7 @@ const ModalContainer = styled(motion.div)`
 const Title = styled.h2`
   color: #2ADFFF;
   margin-bottom: 1rem;
+  font-size: 1.5rem;
 `;
 
 const Message = styled.p`
@@ -48,8 +49,13 @@ const Button = styled(motion.button)`
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
   background: ${props => props.$danger ? '#ff4444' : '#2ADFFF'};
   color: ${props => props.$danger ? '#fff' : '#1a1a1a'};
+
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const modalVariants = {

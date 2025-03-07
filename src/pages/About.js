@@ -5,29 +5,30 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 const AboutContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  overflow-x: hidden;
   color: var(--text-color);
   background: var(--background-color);
 `;
 
 const HeroSection = styled.section`
   text-align: center;
-  margin-bottom: 6rem;
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1rem, 3vw, 2rem);
 
   h1 {
-    font-size: 3rem;
-    margin-bottom: 1.5rem;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: clamp(0.5rem, 2vw, 1rem);
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-color) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   p {
-    font-size: 1.2rem;
-    line-height: 1.8;
-    max-width: 800px;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    max-width: min(100%, 800px);
     margin: 0 auto;
-    color: var(--text-secondary);
+    line-height: 1.6;
   }
 `;
 
@@ -44,8 +45,9 @@ const Section = styled.section`
 
 const SkillsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(1rem, 3vw, 2rem);
 `;
 
 const SkillCard = styled(motion.div)`
@@ -83,6 +85,7 @@ const Timeline = styled.div`
   position: relative;
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 clamp(1rem, 5vw, 3rem);
 
   &::after {
     content: '';
@@ -93,25 +96,23 @@ const Timeline = styled.div`
     bottom: 0;
     left: 50%;
     margin-left: -1px;
+
+    @media (max-width: 768px) {
+      left: 1rem;
+    }
   }
 `;
 
 const TimelineItem = styled(motion.div)`
-  padding: 10px 40px;
+  padding: clamp(1rem, 3vw, 2rem);
   position: relative;
   width: 50%;
   left: ${props => props.$right ? '50%' : '0'};
 
-  &::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: var(--accent-color);
-    border-radius: 50%;
-    top: 15px;
-    right: ${props => props.$right ? 'auto' : '-10px'};
-    left: ${props => props.$right ? '-10px' : 'auto'};
+  @media (max-width: 768px) {
+    width: 100%;
+    left: 0;
+    padding-left: 3rem;
   }
 `;
 
@@ -255,9 +256,9 @@ const ResumeButton = styled(motion.a)`
 
 const StatsSection = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  margin: clamp(2rem, 5vw, 4rem) 0;
 `;
 
 const StatCard = styled(motion.div)`
@@ -428,11 +429,12 @@ const InterestCard = styled(motion.div)`
   }
 `;
 
-const LanguageSection = styled(Section)`
+const LanguageSection = styled.section`
   .language-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-top: clamp(1rem, 3vw, 2rem);
   }
 `;
 

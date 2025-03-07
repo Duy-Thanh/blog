@@ -4,6 +4,7 @@ import { FaGithub, FaExternalLinkAlt, FaLinkedin, FaEnvelope, FaQuoteLeft } from
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { motion } from 'framer-motion';
+import { createGlobalStyle } from 'styled-components';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -11,14 +12,16 @@ const fadeIn = keyframes`
 `;
 
 const HeroSection = styled(motion.section)`
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(1rem, 5vw, 3rem);
   position: relative;
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.95) 100%);
   overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
 
   &::before {
     content: '';
@@ -32,90 +35,98 @@ const HeroSection = styled(motion.section)`
         circle at center,
         rgba(42, 223, 255, 0.1) 0%,
         transparent 50%
-      ),
-      linear-gradient(
-        45deg,
-        transparent 0%,
-        rgba(42, 223, 255, 0.03) 50%,
-        transparent 100%
       );
     opacity: 0.5;
     animation: rotate 20s linear infinite;
+    pointer-events: none;
   }
 
   @keyframes rotate {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 4rem);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+  }
+  
+  p {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.6;
+  }
+
+  @media screen and (max-width: 768px) {
+    padding: 2rem 1rem;
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    p {
+      font-size: 1rem;
+    }
+  }
 `;
 
 const HeroContent = styled(motion.div)`
-  max-width: 800px;
+  max-width: min(800px, 90%);
   text-align: center;
   z-index: 1;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
   background: rgba(32, 32, 32, 0.7);
-  border-radius: 24px;
+  border-radius: clamp(12px, 3vw, 24px);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(42, 223, 255, 0.1),
-    inset 0 0 80px rgba(42, 223, 255, 0.05);
+    0 0 0 1px rgba(42, 223, 255, 0.1);
   backdrop-filter: blur(10px);
 `;
 
 const Title = styled(motion.h1)`
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: clamp(2rem, 6vw, 4rem);
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
   background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 20px rgba(42, 223, 255, 0.5);
+  width: 100%;
 `;
 
 const Subtitle = styled(motion.h2)`
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 3vw, 1.5rem);
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 `;
 
 const Description = styled(motion.p)`
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const SocialLinks = styled(motion.div)`
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
+  flex-wrap: wrap;
+  padding: 0 clamp(0.5rem, 2vw, 1rem);
 
   a {
     color: #2ADFFF;
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
     transition: all 0.3s ease;
     position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: rgba(42, 223, 255, 0.2);
-      transform: scale(0);
-      transition: transform 0.3s ease;
-    }
+    padding: clamp(0.3rem, 1vw, 0.5rem);
 
     &:hover {
       transform: translateY(-3px);
       color: #fff;
-
-      &::after {
-        transform: scale(1.5);
-      }
     }
   }
 `;
@@ -148,37 +159,25 @@ const SectionTitle = styled(motion.h2)`
 `;
 
 const ProjectsSection = styled.section`
-  padding: 6rem 2rem;
+  padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 3vw, 2rem);
   background: rgba(26, 26, 26, 0.95);
   position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(42, 223, 255, 0.3), transparent);
-  }
+  width: 100%;
 `;
 
 const ProjectsContainer = styled.div`
   width: 100%;
-  max-width: 1200px;
+  max-width: min(1200px, 95%);
   margin: 0 auto;
 `;
 
-const ProjectGrid = styled.div`
+const ProjectsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  width: 100%;
+  padding: clamp(1rem, 3vw, 2rem) 0;
 `;
 
 const ProjectCard = styled.div`
@@ -255,26 +254,41 @@ const SkillsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
+  padding: 2rem 0;
   max-width: 1200px;
   margin: 0 auto;
 `;
 
 const SkillCard = styled.div`
-  background: #fff;
-  padding: 2rem;
-  border-radius: 15px;
+  background: rgba(32, 32, 32, 0.95);
+  padding: 1.5rem;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   transition: transform 0.3s ease;
-  text-align: center;
 
   &:hover {
     transform: translateY(-5px);
   }
 
-  svg {
-    font-size: 2.5rem;
-    color: var(--accent-color);
+  div {
+    color: #2ADFFF;
+    font-size: 2rem;
     margin-bottom: 1rem;
+  }
+
+  h3 {
+    color: #2ADFFF;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: rgba(42, 223, 255, 0.9);
+    line-height: 1.6;
+    font-size: 0.9rem;
   }
 `;
 
@@ -295,10 +309,15 @@ const ContactTitle = styled(SectionTitle)`
 `;
 
 const ContactForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1rem, 3vw, 2rem);
+  
+  @media screen and (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -309,59 +328,28 @@ const FormGroup = styled.div`
 `;
 
 const Input = styled.input`
-  padding: 1rem;
-  border: none;
+  width: 100%;
+  padding: clamp(0.8rem, 2vw, 1rem);
+  font-size: clamp(0.9rem, 2vw, 1rem);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-
-  &:focus {
-    background: rgba(255, 255, 255, 0.15);
-    outline: none;
-  }
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-  }
 `;
 
 const TextArea = styled.textarea`
-  padding: 1rem;
-  border: none;
+  width: 100%;
+  min-height: clamp(150px, 30vh, 250px);
+  padding: clamp(0.8rem, 2vw, 1rem);
+  font-size: clamp(0.9rem, 2vw, 1rem);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-size: 1rem;
-  min-height: 150px;
-  transition: background 0.3s ease;
-
-  &:focus {
-    background: rgba(255, 255, 255, 0.15);
-    outline: none;
-  }
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-  }
 `;
 
 const SubmitButton = styled.button`
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent-color);
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: fit-content;
-  margin: 0 auto;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
+  padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  width: 100%;
+  
+  @media screen and (min-width: 768px) {
+    width: auto;
+    justify-self: end;
   }
 `;
 
@@ -445,10 +433,42 @@ const TimelineItem = styled.div`
 `;
 
 const TimelineContent = styled.div`
-  padding: 20px;
-  background: #fff;
-  border-radius: 15px;
+  padding: 1.5rem;
+  background: rgba(32, 32, 32, 0.95);
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  
+  h3 {
+    color: #2ADFFF;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  h4 {
+    color: #2ADFFF;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  p {
+    color: rgba(42, 223, 255, 0.9);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    line-height: 1.6;
+    
+    &:first-of-type {
+      color: #2ADFFF;
+      font-weight: 500;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const TestimonialsSection = styled.section`
@@ -528,47 +548,43 @@ const ServicesSection = styled.section`
 
 const ServiceGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
+  padding: 2rem 0;
   max-width: 1200px;
   margin: 0 auto;
 `;
 
 const ServiceCard = styled.div`
-  background: #fff;
+  background: rgba(32, 32, 32, 0.95);
   padding: 2rem;
-  border-radius: 15px;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
   }
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: var(--accent-color);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
+  h3 {
+    color: #2ADFFF;
+    font-size: 1.3rem;
+    margin: 1rem 0;
+    font-weight: 600;
   }
 
-  &:hover::before {
-    transform: scaleX(1);
+  p {
+    color: rgba(42, 223, 255, 0.9);
+    line-height: 1.6;
+    font-size: 0.9rem;
   }
 `;
 
 const ServiceIcon = styled.div`
-  font-size: 2.5rem;
-  color: var(--accent-color);
+  font-size: 2rem;
+  color: #2ADFFF;
   margin-bottom: 1rem;
 `;
 
@@ -581,15 +597,17 @@ const BlogPreviewGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  padding: 2rem 0;
   max-width: 1200px;
   margin: 0 auto;
 `;
 
 const BlogPreviewCard = styled.div`
-  background: #fff;
-  border-radius: 15px;
+  background: rgba(32, 32, 32, 0.95);
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease;
 
   &:hover {
@@ -605,11 +623,25 @@ const BlogPreviewImage = styled.img`
 
 const BlogPreviewContent = styled.div`
   padding: 1.5rem;
+
+  h3 {
+    color: #2ADFFF;
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+    font-weight: 600;
+  }
+
+  p {
+    color: rgba(42, 223, 255, 0.9);
+    line-height: 1.6;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
 `;
 
 const BlogPreviewDate = styled.span`
-  color: #666;
-  font-size: 0.9rem;
+  color: rgba(42, 223, 255, 0.8);
+  font-size: 0.85rem;
 `;
 
 const ViewAllButton = styled.button`
@@ -642,6 +674,14 @@ const AchievementGrid = styled.div`
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  
+  @media screen and (max-width: 768px) {
+    gap: 1.5rem;
+  }
+  
+  @media screen and (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const AchievementCard = styled.div`
@@ -678,6 +718,26 @@ const AchievementCard = styled.div`
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.6;
     font-size: 1rem;
+  }
+`;
+
+const GlobalStyle = createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
 `;
 
@@ -927,7 +987,7 @@ function Home() {
           Featured Projects
         </SectionTitle>
         <ProjectsContainer>
-          <ProjectGrid>
+          <ProjectsGrid>
             {projects.map((project, index) => (
               <ProjectCard key={index}>
                 <ProjectImage src={project.image} alt={project.title} />
@@ -950,7 +1010,7 @@ function Home() {
                 </ProjectInfo>
               </ProjectCard>
             ))}
-          </ProjectGrid>
+          </ProjectsGrid>
         </ProjectsContainer>
       </ProjectsSection>
 
