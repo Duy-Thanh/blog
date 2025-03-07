@@ -3,10 +3,15 @@ import { privateKey } from '../keys/private-key'
 import crypto from 'crypto-browserify'
 
 let supabaseInstance = null
+let initializationPromise = null
 
 async function getDecryptedCredentials() {
   try {
     const response = await fetch('/blog/encrypted-credentials.json')
+    if (!response.ok) {
+      throw new Error(`Failed to fetch credentials: ${response.status} ${response.statusText}`)
+    }
+    
     const {
       data: encryptedData,
       iv,
@@ -43,28 +48,43 @@ async function getDecryptedCredentials() {
 
 // Initialize Supabase with decrypted credentials
 async function initSupabase() {
-  if (!supabaseInstance) {
-    const credentials = await getDecryptedCredentials()
-    supabaseInstance = createClient(credentials.url, credentials.key, {
-      auth: { persistSession: true }
-    })
+  if (!initializationPromise) {
+    initializationPromise = (async () => {
+      try {
+        const credentials = await getDecryptedCredentials()
+        supabaseInstance = createClient(credentials.url, credentials.key, {
+          auth: { 
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        })
+        // Test the connection
+        await supabaseInstance.auth.getSession()
+        return supabaseInstance
+      } catch (error) {
+        console.error('Supabase initialization failed:', error)
+        initializationPromise = null
+        throw error
+      }
+    })()
   }
-  return supabaseInstance
+  return initializationPromise
 }
 
-// Initialize immediately and export the instance
+// Initialize immediately
 const supabasePromise = initSupabase()
 
 export const supabase = {
   get instance() {
     if (!supabaseInstance) {
-      throw new Error('Supabase not initialized - please wait for initialization')
+      throw new Error('Supabase not initialized - please await getSupabase()')
     }
     return supabaseInstance
   },
   get auth() {
     if (!supabaseInstance) {
-      throw new Error('Supabase auth not initialized - please wait for initialization')
+      throw new Error('Supabase auth not initialized - please await getSupabase()')
     }
     return supabaseInstance.auth
   }
