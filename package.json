@@ -36,7 +36,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "CI=false GENERATE_SOURCEMAP=false react-app-rewired build",
-    "postbuild": "",
+    "postbuild": "echo Postbuild complete",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "predeploy": "yarn build",
