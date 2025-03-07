@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import styled from 'styled-components';
-import { getSupabase } from '../supabase/config';
+import { supabase } from '../lib/supabaseClient';
 
 const Modal = styled.div`
   position: fixed;
@@ -165,46 +165,20 @@ export const Login = ({ onSuccess, onClose }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [supabaseClient, setSupabaseClient] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const initSupabase = async () => {
-      try {
-        const client = await getSupabase();
-        setSupabaseClient(client);
-      } catch (error) {
-        console.error('Failed to initialize Supabase:', error);
-        setError('Failed to initialize authentication system');
-      }
-    };
-    
-    initSupabase();
-  }, []);
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!supabaseClient) {
-      setError('Authentication system not ready. Please try again.');
-      return;
-    }
-
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
-      if (signInError) throw signInError;
-
-      onSuccess?.();
-      navigate('/blog');
+      if (error) throw error;
+      onSuccess(data);
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Invalid login credentials');
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +212,7 @@ export const Login = ({ onSuccess, onClose }) => {
             </ErrorMessage>
           )}
           
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleLogin}>
             <InputWrapper
               value={email}
               initial={{ opacity: 0, x: -20 }}
@@ -252,7 +226,7 @@ export const Login = ({ onSuccess, onClose }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 required
-                disabled={isLoading || !supabaseClient}
+                disabled={isLoading}
               />
             </InputWrapper>
             
@@ -269,7 +243,7 @@ export const Login = ({ onSuccess, onClose }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                disabled={isLoading || !supabaseClient}
+                disabled={isLoading}
               />
             </InputWrapper>
             
@@ -280,7 +254,7 @@ export const Login = ({ onSuccess, onClose }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              disabled={isLoading || !supabaseClient}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <LoadingSpinner
