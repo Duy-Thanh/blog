@@ -1,915 +1,882 @@
-import styled from 'styled-components';
-import { FaCode, FaServer, FaMobile, FaGraduationCap, FaBriefcase, FaAward, FaCertificate, FaTools, FaLaptopCode, FaDownload, FaGithub, FaLinkedin } from 'react-icons/fa';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React from 'react';
+import styled, { keyframes } from 'styled-components';
+import { motion } from 'framer-motion';
+import { 
+  FaGithub, FaLinkedin, FaEnvelope, FaCode, 
+  FaServer, FaDatabase, FaReact, FaNode, 
+  FaPython, FaJava, FaDocker, FaAws 
+} from 'react-icons/fa';
 
-const AboutContainer = styled.div`
-  max-width: 1200px;
+// Add these animations
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+`;
+
+const glow = keyframes`
+  0%, 100% { box-shadow: 0 0 20px rgba(42, 223, 255, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(42, 223, 255, 0.6); }
+`;
+
+const shimmer = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
+
+// Add these new animations
+const rotate = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0.5; }
+`;
+
+const floatGlow = keyframes`
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg);
+    filter: drop-shadow(0 0 5px rgba(42, 223, 255, 0.3));
+  }
+  50% { 
+    transform: translateY(-10px) rotate(5deg);
+    filter: drop-shadow(0 0 20px rgba(42, 223, 255, 0.6));
+  }
+`;
+
+const gradientMove = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+// Add decorative elements
+const Particle = styled.div`
+  position: absolute;
+  width: ${props => props.size || '10px'};
+  height: ${props => props.size || '10px'};
+  background: rgba(42, 223, 255, ${props => props.opacity || '0.1'});
+  border-radius: 50%;
+  top: ${props => props.top};
+  left: ${props => props.left};
+  animation: ${float} ${props => props.duration || '3s'} ease-in-out infinite;
+  animation-delay: ${props => props.delay || '0s'};
+`;
+
+const AboutContainer = styled(motion.div)`
+  max-width: 1000px;
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem);
-  overflow-x: hidden;
+  padding: clamp(1rem, 5vw, 3rem);
   color: var(--text-color);
-  background: var(--background-color);
-`;
-
-const HeroSection = styled.section`
-  text-align: center;
-  margin-bottom: clamp(2rem, 5vw, 4rem);
-  padding: clamp(1rem, 3vw, 2rem);
-
-  h1 {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    margin-bottom: clamp(0.5rem, 2vw, 1rem);
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-color) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  p {
-    font-size: clamp(1rem, 2vw, 1.2rem);
-    max-width: min(100%, 800px);
-    margin: 0 auto;
-    line-height: 1.6;
-  }
-`;
-
-const Section = styled.section`
-  margin-bottom: 6rem;
-
-  h2 {
-    font-size: 2.5rem;
-    margin-bottom: 3rem;
-    text-align: center;
-    color: var(--accent-color);
-  }
-`;
-
-const SkillsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
-  margin-top: clamp(1rem, 3vw, 2rem);
-`;
-
-const SkillCard = styled(motion.div)`
-  background: var(--card-background);
-  padding: 2rem;
-  border-radius: 15px;
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent-color);
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.2);
-  }
-
-  svg {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 1.5rem;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: var(--text-color);
-  }
-
-  p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
-`;
-
-const Timeline = styled.div`
   position: relative;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 clamp(1rem, 5vw, 3rem);
+  z-index: 1;
+  min-height: calc(100vh - var(--header-height));
+  overflow-x: hidden;
+`;
+
+const HeroSection = styled(motion.div)`
+  text-align: center;
+  padding: clamp(3rem, 10vw, 6rem) 1rem;
+  background: linear-gradient(135deg, 
+    rgba(26, 26, 26, 0.97) 0%,
+    rgba(42, 42, 42, 0.97) 100%
+  );
+  border-radius: var(--border-radius-lg);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 3rem;
+  box-shadow: var(--box-shadow);
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(42, 223, 255, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(42, 223, 255, 0.15) 0%, transparent 50%),
+      linear-gradient(45deg, rgba(42, 223, 255, 0.05) 0%, transparent 70%),
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(42, 223, 255, 0.02) 10px,
+        rgba(42, 223, 255, 0.02) 20px
+      );
+    z-index: 0;
+    animation: ${gradientMove} 15s ease infinite;
+  }
 
   &::after {
     content: '';
     position: absolute;
-    width: 2px;
-    background: var(--accent-color);
-    top: 0;
     bottom: 0;
-    left: 50%;
-    margin-left: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent,
+      rgba(42, 223, 255, 0.5),
+      transparent
+    );
+  }
+`;
 
-    @media (max-width: 768px) {
-      left: 1rem;
+const Title = styled(motion.h1)`
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 1;
+`;
+
+const Subtitle = styled(motion.p)`
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+`;
+
+const Section = styled(motion.section)`
+  margin: 4rem 0;
+  position: relative;
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(42, 223, 255, 0.05);
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+      rgba(42, 223, 255, 0.2),
+      transparent 50%
+    );
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+`;
+
+const SectionTitle = styled(motion.h2)`
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--accent-color);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(42, 223, 255, 0.5),
+      transparent
+    );
+  }
+`;
+
+const SkillsGrid = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+`;
+
+const SkillCard = styled(motion.div)`
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: skewX(-15deg);
+    transition: 0.5s;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle at center,
+      rgba(42, 223, 255, 0.1) 0%,
+      transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    border-color: rgba(42, 223, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(42, 223, 255, 0.15);
+
+    &::before {
+      left: 100%;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    
+    svg {
+      font-size: 1.5rem;
+      animation: ${glow} 3s ease-in-out infinite;
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin: 0.8rem 0;
+      color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: all 0.3s ease;
+
+      svg {
+        color: var(--accent-color);
+        font-size: 1.2rem;
+        opacity: 0.8;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: -20px;
+        top: 50%;
+        width: 10px;
+        height: 2px;
+        background: var(--accent-color);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+        transform-origin: right;
+      }
+
+      &:hover {
+        transform: translateX(5px);
+        color: var(--accent-color);
+
+        svg {
+          opacity: 1;
+        }
+
+        &::before {
+          transform: scaleX(1);
+        }
+      }
     }
   }
 `;
 
-const TimelineItem = styled(motion.div)`
-  padding: clamp(1rem, 3vw, 2rem);
-  position: relative;
-  width: 50%;
-  left: ${props => props.$right ? '50%' : '0'};
-
-  @media (max-width: 768px) {
-    width: 100%;
-    left: 0;
-    padding-left: 3rem;
-  }
-`;
-
-const TimelineContent = styled.div`
-  padding: 20px;
-  background: var(--card-background);
-  border-radius: 15px;
-  border: 1px solid var(--border-color);
-
-  h3 {
-    color: var(--accent-color);
-    margin-bottom: 0.5rem;
-  }
-
-  h4 {
-    color: var(--text-color);
-    margin-bottom: 1rem;
-  }
-
-  p {
-    color: var(--text-secondary);
-  }
-`;
-
-const AchievementsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-`;
-
-const AchievementCard = styled(motion.div)`
-  text-align: center;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  svg {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    font-size: 2rem;
-    color: #fff;
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    color: rgba(255, 255, 255, 0.8);
-  }
-`;
-
-const TechStackSection = styled(Section)`
-  background: rgba(255, 255, 255, 0.02);
-  padding: 4rem 2rem;
-  border-radius: 20px;
-`;
-
-const TechGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 2rem;
-  text-align: center;
-`;
-
-const TechItem = styled(motion.div)`
-  img {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-  }
-`;
-
-const EducationSection = styled(Section)`
-  .education-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2rem;
-    border-radius: 15px;
-    margin-bottom: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-`;
-
-const CertificationsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-`;
-
-const CertificationCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2rem;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  
-  h4 {
-    color: var(--accent-color);
-    margin-bottom: 0.5rem;
-  }
-  
-  p {
-    color: rgba(255, 255, 255, 0.8);
-  }
-  
-  .date {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 1rem;
-  }
-`;
-
-const ResumeButton = styled(motion.a)`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 2rem;
-  background: var(--accent-color);
-  color: var(--text-on-accent);
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  margin-top: 2rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
-    background: var(--accent-hover);
-  }
-`;
-
-const StatsSection = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
-  margin: clamp(2rem, 5vw, 4rem) 0;
-`;
-
-const StatCard = styled(motion.div)`
-  background: var(--card-background);
-  padding: 2rem;
-  border-radius: 15px;
-  text-align: center;
-  border: 1px solid var(--border-color);
-
-  h3 {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    color: var(--text-secondary);
-  }
-`;
-
-const SocialSection = styled.div`
+const ContactSection = styled(motion.div)`
   display: flex;
   justify-content: center;
   gap: 2rem;
   margin-top: 3rem;
-
-  a {
-    color: #fff;
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
-
-    &:hover {
-      color: var(--accent-color);
-      transform: translateY(-3px);
-    }
-  }
+  flex-wrap: wrap;
 `;
 
-const SkillProgressSection = styled.div`
-  margin-top: 3rem;
-`;
-
-const SkillBar = styled.div`
-  margin-bottom: 1.5rem;
-
-  .skill-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-  }
-
-  .progress-bar {
-    height: 8px;
-    background: var(--progress-background);
-    border-radius: 4px;
-    overflow: hidden;
-
-    .progress {
-      height: 100%;
-      background: var(--accent-color);
-      border-radius: 4px;
-      width: ${props => props.$progress}%;
-      transition: width 1s ease-in-out;
-    }
-  }
-`;
-
-const QuoteSection = styled(Section)`
-  text-align: center;
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, rgba(97, 218, 251, 0.1) 0%, transparent 100%);
-  border-radius: var(--border-radius);
-  margin: 4rem 0;
-
-  blockquote {
-    font-size: 1.5rem;
-    font-style: italic;
-    color: var(--text-color);
-    max-width: 800px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
-`;
-
-const InterestsSection = styled(Section)`
-  .interests-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-  }
-`;
-
-const InterestCard = styled(motion.div)`
-  background: var(--card-background);
-  padding: var(--card-padding);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  text-align: center;
-  backdrop-filter: blur(10px);
+const SocialLink = styled(motion.a)`
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(42, 223, 255, 0.1);
   position: relative;
   overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(var(--accent-rgb), 0.1) 0%, 
-      transparent 100%
+    inset: -2px;
+    background: linear-gradient(135deg,
+      rgba(42, 223, 255, 0.5),
+      rgba(255, 255, 255, 0.1),
+      rgba(42, 223, 255, 0.5)
     );
+    z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
-  }
-
-  &:hover::before {
-    opacity: 1;
-  }
-
-  svg {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    margin: 1rem 0;
-    color: var(--text-color);
-    position: relative;
-  }
-
-  p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    position: relative;
+    animation: ${shimmer} 2s linear infinite;
+    background-size: 200% 100%;
   }
 
   &:hover {
-    border-color: var(--accent-color);
-    transform: translateY(-5px);
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.15);
-  }
+    transform: translateY(-2px);
+    background: rgba(42, 223, 255, 0.1);
+    border-color: rgba(42, 223, 255, 0.3);
 
-  .icon-wrapper {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(var(--accent-rgb), 0.1);
-    border-radius: 50%;
-    transition: all 0.3s ease;
+    &::before {
+      opacity: 1;
+    }
 
-    span {
-      font-size: 2rem;
+    svg {
+      transform: scale(1.2);
     }
   }
 
-  &:hover .icon-wrapper {
-    transform: scale(1.1) rotate(5deg);
-    background: rgba(var(--accent-rgb), 0.2);
+  svg {
+    font-size: 1.4rem;
+    color: var(--accent-color);
+    transition: transform 0.3s ease;
   }
 `;
 
-const LanguageSection = styled.section`
-  .language-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-    gap: clamp(1rem, 3vw, 2rem);
-    margin-top: clamp(1rem, 3vw, 2rem);
+// Add a background decorator
+const BackgroundDecorator = styled.div`
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(42, 223, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 90% 90%, rgba(42, 223, 255, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+`;
+
+// Add an orbit effect component
+const OrbitRing = styled.div`
+  position: absolute;
+  width: ${props => props.size || '100px'};
+  height: ${props => props.size || '100px'};
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  border-radius: 50%;
+  animation: ${rotate} ${props => props.duration || '20s'} linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px rgba(42, 223, 255, 0.5);
   }
 `;
 
-const LanguageCard = styled(motion.div)`
-  background: var(--card-background);
-  padding: var(--card-padding);
-  border-radius: var(--border-radius);
+// Add a decorative circle component
+const Circle = styled.div`
+  position: absolute;
+  width: ${props => props.size || '300px'};
+  height: ${props => props.size || '300px'};
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: ${pulse} 4s ease-in-out infinite;
+  animation-delay: ${props => props.delay || '0s'};
+  pointer-events: none;
+  z-index: 0;
+`;
+
+// Add a stat section
+const StatsSection = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+`;
+
+const StatCard = styled(motion.div)`
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
   text-align: center;
-  border: 1px solid var(--border-color);
-  backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+
+  h4 {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin: 0;
+    font-weight: 700;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+      transparent,
+      rgba(42, 223, 255, 0.1),
+      transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
+`;
+
+// Add a floating tech icon component
+const FloatingIcon = styled(motion.div)`
+  position: absolute;
+  font-size: ${props => props.size || '24px'};
+  color: rgba(42, 223, 255, ${props => props.opacity || '0.3'});
+  animation: ${floatGlow} ${props => props.duration || '6s'} ease-in-out infinite;
+  animation-delay: ${props => props.delay || '0s'};
+  z-index: 0;
+  pointer-events: none;
+`;
+
+// Add a progress bar component
+const ProgressBar = styled(motion.div)`
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  position: relative;
 
   &::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(var(--accent-rgb), 0.1) 0%, 
-      transparent 100%
+    height: 100%;
+    width: ${props => props.progress}%;
+    background: linear-gradient(90deg, 
+      var(--accent-color),
+      #1fb8d4
     );
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    border-radius: 2px;
   }
 
-  &:hover::before {
-    opacity: 1;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: ${shimmer} 2s linear infinite;
+  }
+`;
+
+// Add these new animations
+const glitch = keyframes`
+  0% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(-2px, 2px);
+  }
+  10% {
+    clip-path: inset(10% 0 85% 0);
+    transform: translate(1px, -3px);
+  }
+  20% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(-5px, 2px);
+  }
+  30% {
+    clip-path: inset(10% 0 85% 0);
+    transform: translate(3px, -2px);
+  }
+  40% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    clip-path: inset(0% 0 100% 0);
+    transform: translate(3px, 2px);
+  }
+  60% {
+    clip-path: inset(100% 0 0% 0);
+    transform: translate(-3px, 1px);
+  }
+  100% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(0);
+  }
+`;
+
+// Add a glitch effect to Title
+const GlitchText = styled.span`
+  position: relative;
+  display: inline-block;
+
+  &::before,
+  &::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
   }
 
-  .language-level {
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 1.5rem;
-    position: relative;
+  &::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff00c1;
+    animation: ${glitch} 2s infinite linear alternate-reverse;
+  }
+
+  &::after {
+    left: -2px;
+    text-shadow: 2px 0 #00fff9;
+    animation: ${glitch} 2s infinite linear alternate;
+  }
+`;
+
+// Add a 3D card effect
+const Card3D = styled(motion.div)`
+  transform-style: preserve-3d;
+  perspective: 1000px;
+`;
+
+// Add a skill progress ring component
+const ProgressRing = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 1rem auto;
+
+  svg {
+    transform: rotate(-90deg);
     
-    svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), 0.3));
-    }
-
     circle {
       fill: none;
-      stroke-width: 6;
+      stroke-width: 8;
       stroke-linecap: round;
       
       &.bg {
-        stroke: var(--progress-background);
+        stroke: rgba(255, 255, 255, 0.1);
       }
       
       &.progress {
         stroke: var(--accent-color);
-        filter: drop-shadow(0 0 3px var(--accent-color));
+        stroke-dasharray: ${props => props.progress * 2.51327};
+        stroke-dashoffset: 0;
+        transition: stroke-dasharray 1s ease;
       }
     }
+  }
 
-    .percentage {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.5rem;
-      color: var(--accent-color);
-      font-weight: bold;
+  span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    font-weight: bold;
+  }
+`;
+
+// Add a wave effect component
+const WaveContainer = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  overflow: hidden;
+  
+  .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%232ADFFF' fill-opacity='0.1'/%3E%3C/svg%3E");
+    animation: wave 15s linear infinite;
+    transform: translate3d(0, 0, 0);
+    
+    &:nth-child(2) {
+      bottom: 0;
+      animation: wave 30s linear infinite;
+      opacity: 0.5;
+    }
+    
+    &:nth-child(3) {
+      bottom: 0;
+      animation: wave 45s linear infinite;
+      opacity: 0.2;
     }
   }
 
-  h3 {
-    color: var(--text-color);
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    position: relative;
-  }
-
-  p {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    position: relative;
-  }
-
-  &:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent-color);
-    box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.15);
-    transition: all 0.3s ease;
+  @keyframes wave {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-50%); }
+    100% { transform: translateX(-100%); }
   }
 `;
 
 function About() {
-  const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+  };
 
-  const techStack = [
-    { name: 'React', icon: '/icons/react.svg' },
-    { name: 'Node.js', icon: '/icons/nodejs.svg' },
-    { name: 'TypeScript', icon: '/icons/typescript.svg' },
-    { name: 'Supabase', icon: '/icons/supabase.svg' },
-    { name: 'Git', icon: '/icons/git.svg' },
-    { name: 'Docker', icon: '/icons/docker.svg' },
-    // Add more tech stack items
-  ];
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
 
-  const certifications = [
-    {
-      title: 'AWS Certified Developer',
-      issuer: 'Amazon Web Services',
-      date: '2024',
-      credentialId: 'AWS-123456'
-    },
-    {
-      title: 'React Developer Certification',
-      issuer: 'Meta',
-      date: '2023',
-      credentialId: 'META-789012'
-    },
-    // Add more certifications
-  ];
-
-  const skills = [
-    { name: 'React', progress: 90 },
-    { name: 'Node.js', progress: 85 },
-    { name: 'TypeScript', progress: 80 },
-    { name: 'Supabase', progress: 85 },
-    { name: 'UI/UX Design', progress: 75 }
-  ];
-
-  const stats = [
-    { number: '3+', label: 'Years Experience' },
-    { number: '50+', label: 'Projects Completed' },
-    { number: '20+', label: 'Happy Clients' },
-    { number: '1000+', label: 'Commits' }
-  ];
-
-  const interests = [
-    { icon: "🎮", title: "Gaming", description: "Passionate about game development and eSports" },
-    { icon: "📚", title: "Learning", description: "Always exploring new technologies" },
-    { icon: "🎵", title: "Music", description: "Love coding with good music" },
-    { icon: "✈️", title: "Travel", description: "Exploring new places and cultures" }
-  ];
-
-  const languages = [
-    { name: "English", level: 90, certification: "IELTS 7.5" },
-    { name: "Vietnamese", level: 100, certification: "Native" },
-    // Add more languages
-  ];
+  const techStack = [FaReact, FaNode, FaDatabase, FaPython, FaDocker, FaAws];
 
   return (
-    <AboutContainer>
-      <HeroSection>
-        <h1>About Me</h1>
-        <p>
-          I'm a passionate Full Stack Developer with a love for creating elegant solutions 
-          to complex problems. My journey in software development has been driven by 
-          curiosity and a constant desire to learn and grow.
-        </p>
-        
-        <SocialSection>
-          <motion.a 
-            href="https://github.com/Duy-Thanh" 
-            target="_blank"
-            whileHover={{ y: -3 }}
-          >
-            <FaGithub />
-          </motion.a>
-          <motion.a 
-            href="https://linkedin.com/in/thanhdz167" 
-            target="_blank"
-            whileHover={{ y: -3 }}
-          >
-            <FaLinkedin />
-          </motion.a>
-        </SocialSection>
+    <>
+      <BackgroundDecorator />
+      <AboutContainer
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <HeroSection variants={itemVariants}>
+          <Particle size="15px" top="10%" left="10%" duration="4s" />
+          <Particle size="10px" top="20%" left="80%" duration="6s" delay="1s" />
+          <Particle size="12px" top="60%" left="15%" duration="5s" delay="0.5s" />
+          <Particle size="8px" top="70%" left="70%" duration="7s" delay="2s" />
+          <Particle size="20px" top="85%" left="85%" duration="8s" delay="1.5s" opacity="0.05" />
+          <FloatingIcon 
+            as={FaReact} 
+            size="40px" 
+            style={{ top: '15%', right: '10%' }} 
+            duration="8s"
+          />
+          <FloatingIcon 
+            as={FaNode} 
+            size="35px" 
+            style={{ bottom: '20%', left: '15%' }} 
+            duration="7s"
+            delay="1s"
+          />
+          <FloatingIcon 
+            as={FaDatabase} 
+            size="30px" 
+            style={{ top: '30%', left: '10%' }} 
+            duration="6s"
+            delay="2s"
+          />
+          <Title>
+            <GlitchText data-text="About Me">About Me</GlitchText>
+          </Title>
+          <Subtitle>
+            A passionate full-stack developer focused on creating beautiful and functional web applications
+          </Subtitle>
+          <WaveContainer>
+            <div className="wave"></div>
+            <div className="wave"></div>
+            <div className="wave"></div>
+          </WaveContainer>
+        </HeroSection>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <ResumeButton 
-            href="/resume.pdf" 
-            target="_blank"
-            whileHover={{ y: -2 }}
-          >
-            <FaDownload /> Download Resume
-          </ResumeButton>
-        </motion.div>
-      </HeroSection>
-
-      <Section>
-        <h2>Professional Skills</h2>
-        <SkillProgressSection>
-          {skills.map((skill, index) => (
-            <SkillBar key={index}>
-              <div className="skill-info">
-                <span>{skill.name}</span>
-                <span>{skill.progress}%</span>
-              </div>
-              <div className="progress-bar">
-                <motion.div 
-                  className="progress"
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${skill.progress}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, delay: index * 0.2 }}
-                />
-              </div>
-            </SkillBar>
-          ))}
-        </SkillProgressSection>
-      </Section>
-
-      <Section>
-        <h2>By the Numbers</h2>
-        <StatsSection>
-          {stats.map((stat, index) => (
+        <Section variants={itemVariants}>
+          <Circle size="200px" style={{ top: '-100px', right: '-100px' }} />
+          <Circle size="150px" style={{ bottom: '-75px', left: '-75px' }} delay="2s" />
+          <OrbitRing size="150px" style={{ top: '20px', right: '50px' }} />
+          <OrbitRing size="100px" style={{ bottom: '40px', left: '30px' }} duration="15s" />
+          
+          <StatsSection>
             <StatCard
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              <h3>{stat.number}</h3>
-              <p>{stat.label}</p>
+              <h4>5+</h4>
+              <p>Years Experience</p>
             </StatCard>
-          ))}
-        </StatsSection>
-      </Section>
-
-      <TechStackSection>
-        <h2>Tech Stack</h2>
-        <TechGrid>
-          {techStack.map((tech, index) => (
-            <TechItem
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+            <StatCard
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              <img src={tech.icon} alt={tech.name} />
-              <p>{tech.name}</p>
-            </TechItem>
-          ))}
-        </TechGrid>
-      </TechStackSection>
-
-      <Section>
-        <h2>Skills & Expertise</h2>
-        <SkillsGrid>
-          <SkillCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <FaCode />
-            <h3>Frontend Development</h3>
-            <p>Crafting beautiful user interfaces with React, TypeScript, and modern CSS. 
-               Experienced in responsive design and state management.</p>
-          </SkillCard>
-          
-          <SkillCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <FaServer />
-            <h3>Backend Development</h3>
-            <p>Building robust server-side applications with Node.js, Express, and Supabase. 
-               Focused on scalability and performance.</p>
-          </SkillCard>
-          
-          <SkillCard
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <FaMobile />
-            <h3>Mobile Development</h3>
-            <p>Creating cross-platform mobile applications with React Native. 
-               Experienced in mobile-first design principles.</p>
-          </SkillCard>
-        </SkillsGrid>
-      </Section>
-
-      <Section>
-        <h2>Experience</h2>
-        <Timeline>
-          <TimelineItem
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <TimelineContent>
-              <h3>Senior Developer</h3>
-              <h4>Tech Corp • 2024 - Present</h4>
-              <p>Leading development team and architecting scalable solutions.</p>
-            </TimelineContent>
-          </TimelineItem>
-          
-          <TimelineItem
-            $right
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <TimelineContent>
-              <h3>Full Stack Developer</h3>
-              <h4>StartUp Inc • 2022 - 2024</h4>
-              <p>Built and maintained multiple web applications using modern technologies.</p>
-            </TimelineContent>
-          </TimelineItem>
-        </Timeline>
-      </Section>
-
-      <Section>
-        <h2>Achievements</h2>
-        <AchievementsGrid>
-          <AchievementCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <FaAward />
-            <h3>50+</h3>
-            <p>Projects Completed</p>
-          </AchievementCard>
-          
-          <AchievementCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <FaGraduationCap />
-            <h3>3+</h3>
-            <p>Years Experience</p>
-          </AchievementCard>
-          
-          <AchievementCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <FaBriefcase />
-            <h3>20+</h3>
-            <p>Happy Clients</p>
-          </AchievementCard>
-        </AchievementsGrid>
-      </Section>
-
-      <EducationSection>
-        <h2>Education</h2>
-        <motion.div 
-          className="education-card"
-          initial={{ opacity: 0, x: -100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h3>Bachelor of Computer Science</h3>
-          <h4>Your University • 2020-2024</h4>
-          <p>Focused on Software Engineering and Web Development. 
-             Graduated with High Honors.</p>
-        </motion.div>
-      </EducationSection>
-
-      <Section>
-        <h2>Certifications</h2>
-        <CertificationsGrid>
-          {certifications.map((cert, index) => (
-            <CertificationCard
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.2 }}
+              <h4>50+</h4>
+              <p>Projects Completed</p>
+            </StatCard>
+            <StatCard
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              <FaCertificate style={{ fontSize: '2rem', color: 'var(--accent-color)', marginBottom: '1rem' }} />
-              <h4>{cert.title}</h4>
-              <p>{cert.issuer}</p>
-              <p className="date">Issued: {cert.date}</p>
-              <small>Credential ID: {cert.credentialId}</small>
-            </CertificationCard>
-          ))}
-        </CertificationsGrid>
-      </Section>
+              <h4>100%</h4>
+              <p>Client Satisfaction</p>
+            </StatCard>
+          </StatsSection>
+        </Section>
 
-      <motion.div style={{ opacity }}>
-        <Section>
-          <h2>Personal Projects</h2>
+        <Section variants={itemVariants}>
+          <SectionTitle>Technical Skills</SectionTitle>
           <SkillsGrid>
-            <SkillCard
-              whileHover={{ y: -5 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+            <Card3D
+              whileHover={{
+                rotateX: 5,
+                rotateY: 5,
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
             >
-              <FaLaptopCode />
-              <h3>Personal Blog</h3>
-              <p>A modern blog platform built with React and Supabase. 
-                 Features markdown support and dark theme.</p>
-            </SkillCard>
-            {/* Add more project cards */}
+              <SkillCard whileHover={{ scale: 1.02 }}>
+                <h3><FaCode /> Frontend</h3>
+                <ul>
+                  <li>
+                    <FaReact /> React.js
+                    <ProgressBar progress={95} />
+                  </li>
+                  <li>
+                    <FaCode /> TypeScript
+                    <ProgressBar progress={90} />
+                  </li>
+                  <li><FaCode /> CSS/SASS</li>
+                  <li><FaReact /> Next.js</li>
+                </ul>
+              </SkillCard>
+            </Card3D>
+
+            <Card3D
+              whileHover={{
+                rotateX: 5,
+                rotateY: 5,
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <SkillCard whileHover={{ scale: 1.02 }}>
+                <h3><FaServer /> Backend</h3>
+                <ul>
+                  <li><FaNode /> Node.js</li>
+                  <li><FaNode /> Express</li>
+                  <li><FaPython /> Python</li>
+                  <li><FaJava /> Java</li>
+                </ul>
+              </SkillCard>
+            </Card3D>
+
+            <Card3D
+              whileHover={{
+                rotateX: 5,
+                rotateY: 5,
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <SkillCard whileHover={{ scale: 1.02 }}>
+                <h3><FaDatabase /> Infrastructure</h3>
+                <ul>
+                  <li><FaDatabase /> PostgreSQL</li>
+                  <li><FaDatabase /> MongoDB</li>
+                  <li><FaDocker /> Docker</li>
+                  <li><FaAws /> AWS</li>
+                </ul>
+              </SkillCard>
+            </Card3D>
           </SkillsGrid>
         </Section>
-      </motion.div>
 
-      <QuoteSection>
-        <motion.blockquote
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          "Passionate about creating elegant solutions to complex problems, 
-          I believe in the power of clean code and user-centered design."
-        </motion.blockquote>
-      </QuoteSection>
-
-      <InterestsSection>
-        <h2>Beyond Coding</h2>
-        <div className="interests-grid">
-          {interests.map((interest, index) => (
-            <InterestCard
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+        <Section variants={itemVariants}>
+          <SectionTitle>Get in Touch</SectionTitle>
+          <ContactSection>
+            <SocialLink 
+              href="https://github.com/yourusername" 
+              target="_blank"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className="icon-wrapper">
-                <span>{interest.icon}</span>
-              </div>
-              <h3>{interest.title}</h3>
-              <p>{interest.description}</p>
-            </InterestCard>
-          ))}
-        </div>
-      </InterestsSection>
-
-      <LanguageSection>
-        <h2>Languages</h2>
-        <div className="language-grid">
-          {languages.map((lang, index) => (
-            <LanguageCard
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              <FaGithub /> GitHub
+            </SocialLink>
+            <SocialLink 
+              href="https://linkedin.com/in/yourusername" 
+              target="_blank"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className="language-level">
-                <svg viewBox="0 0 100 100">
-                  <circle className="bg" cx="50" cy="50" r="45" />
-                  <motion.circle
-                    className="progress"
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    initial={{ pathLength: 0 }}
-                    whileInView={{ pathLength: lang.level / 100 }}
-                    transition={{ duration: 1.5, delay: 0.5 }}
-                    strokeDasharray="283"
-                    strokeDashoffset="0"
-                  />
-                </svg>
-                <div className="percentage">{lang.level}%</div>
-              </div>
-              <h3>{lang.name}</h3>
-              <p>{lang.certification}</p>
-            </LanguageCard>
-          ))}
-        </div>
-      </LanguageSection>
-    </AboutContainer>
+              <FaLinkedin /> LinkedIn
+            </SocialLink>
+            <SocialLink 
+              href="mailto:your.email@example.com"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaEnvelope /> Email
+            </SocialLink>
+          </ContactSection>
+        </Section>
+      </AboutContainer>
+      {techStack.map((Icon, index) => (
+        <FloatingIcon
+          key={index}
+          as={Icon}
+          size={`${Math.random() * 20 + 20}px`}
+          style={{
+            top: `${Math.random() * 80 + 10}%`,
+            left: `${Math.random() * 80 + 10}%`,
+          }}
+          duration={`${Math.random() * 4 + 4}s`}
+          delay={`${Math.random() * 2}s`}
+          opacity={0.2}
+        />
+      ))}
+    </>
   );
 }
 
