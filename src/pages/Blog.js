@@ -3,7 +3,10 @@ import styled, { keyframes, css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, FaCalendar, FaClock, FaStar, 
-  FaEnvelope, FaEdit, FaTrash
+  FaEnvelope, FaEdit, FaTrash, FaArrowUp,
+  FaBookReader, FaHashtag, FaLayerGroup,
+  FaRegClock, FaRegBookmark, FaChevronUp,
+  FaFilter, FaTags, FaRegLightbulb
 } from 'react-icons/fa';
 import BlogPost from '../components/BlogPost';
 import { Link, useNavigate } from 'react-router-dom';
@@ -70,6 +73,16 @@ const gradientMove = keyframes`
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+`;
+
+const sparkleAnimation = keyframes`
+  0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: 1; }
+`;
+
+const waveAnimation = keyframes`
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 `;
 
 const BlogContainer = styled(motion.div)`
@@ -237,12 +250,29 @@ const BlogGrid = styled(motion.div)`
   gap: clamp(1rem, 3vw, 1.5rem);
   margin: clamp(2rem, 4vw, 3rem) 0;
   padding: 0 clamp(1rem, 3vw, 2rem);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(
+      circle at center,
+      rgba(42, 223, 255, 0.05) 0%,
+      transparent 70%
+    );
+    z-index: -1;
+    pointer-events: none;
+  }
 
   @media (min-width: 1024px) {
     grid-auto-flow: dense;
     & > *:nth-child(4n) {
       grid-column: span 2;
       grid-row: span 2;
+    }
+    & > *:nth-child(8n) {
+      grid-column: span 2;
     }
   }
 
@@ -582,15 +612,17 @@ const DecorativeShape = styled.div`
 
 const CategoryIndicator = styled(motion.div)`
   position: relative;
-  padding: 0.5rem 0;
-  margin: 1rem 0;
-  
-  &::before {
+  padding: 1rem 0;
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  &::before, &::after {
     content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
+    flex: 1;
     height: 1px;
     background: linear-gradient(
       90deg,
@@ -598,6 +630,7 @@ const CategoryIndicator = styled(motion.div)`
       rgba(42, 223, 255, 0.3),
       transparent
     );
+    max-width: 200px;
   }
 `;
 
@@ -610,6 +643,13 @@ const CategoryLabel = styled(motion.span)`
   border-radius: 20px;
   border: 1px solid rgba(42, 223, 255, 0.2);
   box-shadow: 0 4px 15px rgba(42, 223, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  svg {
+    font-size: 1rem;
+  }
 `;
 
 // Add a background decorator component
@@ -658,20 +698,34 @@ const StatsOverview = styled(motion.div)`
 
 const StatCard = styled(motion.div)`
   background: rgba(255, 255, 255, 0.05);
-  padding: 1rem 2rem;
+  padding: 1.5rem 2rem;
   border-radius: 15px;
   border: 1px solid rgba(42, 223, 255, 0.1);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  
+  svg {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+  }
   
   h4 {
     color: var(--accent-color);
     font-size: 2rem;
-    margin-bottom: 0.5rem;
+    margin: 0;
   }
   
   p {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 `;
 
@@ -716,6 +770,93 @@ const ScrollProgress = styled(motion.div)`
   );
   transform-origin: 0%;
   z-index: 1000;
+`;
+
+// Add a sparkle effect component
+const Sparkle = styled.div`
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(42, 223, 255, 0.8) 0%, transparent 60%);
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  animation: ${sparkleAnimation} 2s ease-in-out infinite;
+`;
+
+// Add a wave effect to the header
+const WaveEffect = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(42, 223, 255, 0.2),
+    transparent
+  );
+  filter: blur(2px);
+  animation: ${waveAnimation} 3s ease-in-out infinite;
+`;
+
+// Add a floating action menu
+const FloatingMenu = styled(motion.div)`
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 100;
+`;
+
+const FloatingButton = styled(motion.button)`
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #1fb8d4 100%);
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(42, 223, 255, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(42, 223, 255, 0.4);
+  }
+`;
+
+// Add a post counter with animation
+const PostCounter = styled(motion.div)`
+  position: fixed;
+  left: 2rem;
+  bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(42, 223, 255, 0.2);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  h4 {
+    font-size: 2rem;
+    color: var(--accent-color);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
 `;
 
 function Blog() {
@@ -885,6 +1026,17 @@ function Blog() {
         variants={containerVariants}
       >
         <BlogHeader>
+          <WaveEffect />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Sparkle
+              key={i}
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
+            />
+          ))}
           <DecorativeShape className="top-left" />
           <DecorativeShape className="top-right" />
           <DecorativeShape className="bottom-left" />
@@ -935,6 +1087,7 @@ function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
+            <FaFilter />
             {selectedCategory === 'all' ? 'All Posts' : `${selectedCategory} Posts`}
           </CategoryLabel>
         </CategoryIndicator>
@@ -1019,15 +1172,35 @@ function Blog() {
           )}
         </Pagination>
 
-        {user && (
-          <NewPostButton
-            to="new-post"
+        <FloatingMenu>
+          <FloatingButton
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <FaEdit />
-          </NewPostButton>
-        )}
+            <FaChevronUp />
+          </FloatingButton>
+          {user && (
+            <FloatingButton
+              as={Link}
+              to="new-post"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <FaRegLightbulb />
+            </FloatingButton>
+          )}
+        </FloatingMenu>
+
+        <PostCounter
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <FaRegBookmark />
+          <h4>{currentPosts.length}</h4>
+          <p>Showing Posts</p>
+        </PostCounter>
 
         <StatsOverview>
           <StatCard
@@ -1035,6 +1208,7 @@ function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
+            <FaLayerGroup />
             <h4>{posts.length}</h4>
             <p>Total Posts</p>
           </StatCard>
@@ -1043,7 +1217,8 @@ function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <h4>{Object.keys(categories).length}</h4>
+            <FaTags />
+            <h4>{categories.length}</h4>
             <p>Categories</p>
           </StatCard>
           <StatCard
@@ -1051,6 +1226,7 @@ function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
+            <FaRegClock />
             <h4>{calculateTotalReadTime()}</h4>
             <p>Minutes of Reading</p>
           </StatCard>
