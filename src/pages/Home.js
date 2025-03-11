@@ -1,1151 +1,469 @@
-import { useEffect } from 'react';
+import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FaGithub, FaExternalLinkAlt, FaLinkedin, FaEnvelope, FaQuoteLeft } from 'react-icons/fa';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 import { motion } from 'framer-motion';
-import { createGlobalStyle } from 'styled-components';
+import { Link } from 'react-router-dom';
+import { FaGithub, FaLinkedin, FaArrowRight, FaCode, FaLaptopCode, FaServer } from 'react-icons/fa';
+import { TypeAnimation } from 'react-type-animation';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 `;
 
-const HeroSection = styled(motion.section)`
-  min-height: calc(100vh - 80px);
+const glow = keyframes`
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(42, 223, 255, 0.3)); }
+  50% { filter: drop-shadow(0 0 40px rgba(42, 223, 255, 0.6)); }
+`;
+
+const gradientMove = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const pulse = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+`;
+
+const rotate = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+const HomeContainer = styled(motion.div)`
+  min-height: calc(100vh - var(--header-height));
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  padding: clamp(1rem, 5vw, 3rem);
+  align-items: center;
+  padding: 2rem;
   position: relative;
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.95) 100%);
   overflow: hidden;
-  width: 100%;
-  max-width: 100vw;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-      radial-gradient(
-        circle at center,
-        rgba(42, 223, 255, 0.1) 0%,
-        transparent 50%
-      );
-    opacity: 0.5;
-    animation: rotate 20s linear infinite;
-    pointer-events: none;
-  }
-
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  h1 {
-    font-size: clamp(2rem, 6vw, 4rem);
-    margin-bottom: clamp(1rem, 3vw, 2rem);
-  }
-  
-  p {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-    line-height: 1.6;
-  }
-
-  @media screen and (max-width: 768px) {
-    padding: 2rem 1rem;
-    
-    h1 {
-      font-size: 2rem;
-    }
-    
-    p {
-      font-size: 1rem;
-    }
+  @media (max-width: 768px) {
+    padding: 1rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
   }
 `;
 
-const HeroContent = styled(motion.div)`
-  max-width: min(800px, 90%);
+const HeroSection = styled(motion.div)`
   text-align: center;
+  max-width: 800px;
+  position: relative;
   z-index: 1;
-  padding: clamp(1rem, 3vw, 2rem);
-  background: rgba(32, 32, 32, 0.7);
-  border-radius: clamp(12px, 3vw, 24px);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(42, 223, 255, 0.1);
-  backdrop-filter: blur(10px);
+  padding: 0 1rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 0 0.5rem;
+  }
 `;
 
 const Title = styled(motion.h1)`
-  font-size: clamp(2rem, 6vw, 4rem);
-  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  margin-bottom: 1.5rem;
   background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(42, 223, 255, 0.5);
-  width: 100%;
+  filter: drop-shadow(0 0 20px rgba(42, 223, 255, 0.3));
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
 `;
 
-const Subtitle = styled(motion.h2)`
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: clamp(1rem, 3vw, 2rem);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+const TypewriterText = styled.div`
+  font-family: monospace;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--accent-color);
+  margin: 1.5rem auto;
+  text-align: center;
+  min-height: 4em;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    min-height: 3em;
+    margin: 1rem auto;
+  }
 `;
 
 const Description = styled(motion.p)`
-  font-size: clamp(0.9rem, 2vw, 1.2rem);
-  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.6;
-  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 2rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-`;
-
-const SocialLinks = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  gap: clamp(1rem, 3vw, 1.5rem);
-  margin-bottom: clamp(2rem, 5vw, 3rem);
-  flex-wrap: wrap;
-  padding: 0 clamp(0.5rem, 2vw, 1rem);
-
-  a {
-    color: #2ADFFF;
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    transition: all 0.3s ease;
-    position: relative;
-    padding: clamp(0.3rem, 1vw, 0.5rem);
-
-    &:hover {
-      transform: translateY(-3px);
-      color: #fff;
-    }
-  }
-`;
-
-const SectionTitle = styled(motion.h2)`
-  text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 3rem;
-  color: #2ADFFF;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(42, 223, 255, 0.5);
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #2ADFFF, transparent);
-    border-radius: 2px;
-  }
-`;
-
-const ProjectsSection = styled.section`
-  padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 3vw, 2rem);
-  background: rgba(26, 26, 26, 0.95);
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-`;
-
-const ProjectsContainer = styled.div`
-  width: 100%;
-  max-width: min(1200px, 95%);
-  margin: 0 auto;
-`;
-
-const ProjectsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
-  width: 100%;
-  padding: clamp(1rem, 3vw, 2rem) 0;
-`;
-
-const ProjectCard = styled.div`
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const ProjectImage = styled.img`
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-`;
-
-const ProjectInfo = styled.div`
-  padding: 1.5rem;
-`;
-
-const ProjectTitle = styled.h3`
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-  color: var(--primary-color);
-`;
-
-const ProjectDescription = styled.p`
-  color: #666;
-  margin-bottom: 1rem;
-  line-height: 1.6;
-`;
-
-const ProjectTech = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-`;
-
-const TechTag = styled.span`
-  background: rgba(97, 218, 251, 0.1);
-  color: var(--accent-color);
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  font-size: 0.9rem;
-`;
-
-const ProjectLinks = styled.div`
-  display: flex;
-  gap: 1rem;
-  
-  a {
-    color: var(--primary-color);
-    font-size: 1.2rem;
-    transition: color 0.3s ease;
-    
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-`;
-
-const SkillsSection = styled.section`
-  padding: 6rem 2rem;
-  background: #f8f9fa;
-`;
-
-const SkillsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  padding: 2rem 0;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const SkillCard = styled.div`
-  background: rgba(32, 32, 32, 0.95);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-  }
-
-  div {
-    color: #2ADFFF;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    color: #2ADFFF;
-    font-size: 1.2rem;
-    margin-bottom: 0.8rem;
-    font-weight: 600;
-  }
-
-  p {
-    color: rgba(42, 223, 255, 0.9);
-    line-height: 1.6;
-    font-size: 0.9rem;
-  }
-`;
-
-const ContactSection = styled.section`
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #2a2a2a 100%);
-  color: #fff;
-`;
-
-const ContactContent = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-`;
-
-const ContactTitle = styled(SectionTitle)`
-  color: #fff;
-`;
-
-const ContactForm = styled.form`
-  max-width: 600px;
-  margin: 0 auto;
-  display: grid;
-  gap: clamp(1rem, 2vw, 1.5rem);
-  padding: clamp(1rem, 3vw, 2rem);
-  
-  @media screen and (max-width: 768px) {
-    padding: 1rem;
-  }
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-align: left;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: clamp(0.8rem, 2vw, 1rem);
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  border-radius: 8px;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: clamp(150px, 30vh, 250px);
-  padding: clamp(0.8rem, 2vw, 1rem);
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  border-radius: 8px;
-`;
-
-const SubmitButton = styled.button`
-  padding: clamp(0.8rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  width: 100%;
-  
-  @media screen and (min-width: 768px) {
-    width: auto;
-    justify-self: end;
-  }
-`;
-
-const StatsSection = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 4rem auto;
-  text-align: center;
-`;
-
-const StatItem = styled.div`
-  h3 {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1rem;
-  }
-`;
-
-const TimelineSection = styled.section`
-  padding: 6rem 2rem;
-  background: #f8f9fa;
-`;
-
-const Timeline = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    background: var(--accent-color);
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    margin-left: -1px;
-  }
+  padding: 0 1rem;
 
   @media (max-width: 768px) {
-    &::after {
-      left: 31px;
-    }
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
   }
 `;
 
-const TimelineItem = styled.div`
-  padding: 10px 40px;
+const ButtonContainer = styled(motion.div)`
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 1rem;
+  }
+`;
+
+const StyledButton = styled(motion.button)`
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(42, 223, 255, 0.1) 0%, rgba(42, 223, 255, 0.2) 100%);
+  color: var(--text-color);
+  border: 1px solid rgba(42, 223, 255, 0.2);
+  transition: all 0.3s ease;
   position: relative;
-  width: 50%;
-  left: ${props => props.$right ? '50%' : '0'};
+  overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
-    width: 20px;
-    height: 20px;
-    background: var(--accent-color);
-    border-radius: 50%;
-    top: 15px;
-    right: ${props => props.$right ? 'auto' : '-10px'};
-    left: ${props => props.$right ? '-10px' : 'auto'};
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: 0.5s;
   }
 
-  @media (max-width: 768px) {
-    width: 100%;
-    left: 0;
-    padding-left: 70px;
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(42, 223, 255, 0.4);
+    box-shadow: 0 5px 15px rgba(42, 223, 255, 0.2);
 
     &::before {
-      left: 21px;
+      left: 100%;
+    }
+
+    svg {
+      transform: translateX(3px);
     }
   }
-`;
 
-const TimelineContent = styled.div`
-  padding: 1.5rem;
-  background: rgba(32, 32, 32, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  
-  h3 {
-    color: #2ADFFF;
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-  }
-
-  h4 {
-    color: #2ADFFF;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-  }
-
-  p {
-    color: rgba(42, 223, 255, 0.9);
-    font-size: 0.9rem;
-    margin: 0.5rem 0;
-    line-height: 1.6;
-    
-    &:first-of-type {
-      color: #2ADFFF;
-      font-weight: 500;
-    }
+  svg {
+    transition: transform 0.3s ease;
   }
 
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    justify-content: center;
   }
 `;
 
-const TestimonialsSection = styled.section`
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-  color: #fff;
+const FloatingElement = styled(motion.div)`
+  position: absolute;
+  font-size: ${props => props.size || '40px'};
+  color: rgba(42, 223, 255, ${props => props.opacity || '0.2'});
+  animation: ${float} ${props => props.duration || '6s'} ease-in-out infinite;
+  animation-delay: ${props => props.delay || '0s'};
+  filter: drop-shadow(0 0 10px rgba(42, 223, 255, 0.3));
 `;
 
-const TestimonialsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+const BackgroundGlow = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(42, 223, 255, 0.1) 0%,
+    transparent 70%
+  );
+  animation: ${glow} 5s ease-in-out infinite;
+  pointer-events: none;
 `;
 
-const TestimonialCard = styled.div`
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2rem;
-  border-radius: 15px;
-  position: relative;
+const CircleDecoration = styled.div`
+  position: absolute;
+  width: ${props => props.size || '300px'};
+  height: ${props => props.size || '300px'};
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: ${pulse} 4s ease-in-out infinite;
+  animation-delay: ${props => props.delay || '0s'};
+`;
 
+const OrbitingDot = styled.div`
+  position: absolute;
+  width: ${props => props.size || '10px'};
+  height: ${props => props.size || '10px'};
+  background: var(--accent-color);
+  border-radius: 50%;
+  animation: ${rotate} ${props => props.duration || '20s'} linear infinite;
+  
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: inherit;
+    filter: blur(5px);
   }
 `;
 
-const QuoteIcon = styled(FaQuoteLeft)`
-  font-size: 2rem;
-  color: var(--accent-color);
-  margin-bottom: 1rem;
+const GridBackground = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(42, 223, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 223, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.1;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: top;
+  pointer-events: none;
 `;
 
-const TestimonialText = styled.p`
-  font-style: italic;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-`;
-
-const TestimonialAuthor = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`;
-
-const AuthorAvatar = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-`;
-
-const AuthorInfo = styled.div`
-  h4 {
-    color: var(--accent-color);
-    margin-bottom: 0.2rem;
-  }
-
-  p {
-    font-size: 0.9rem;
-    opacity: 0.8;
-  }
-`;
-
-const ServicesSection = styled.section`
-  padding: 6rem 2rem;
-  background: #fff;
-`;
-
-const ServiceGrid = styled.div`
+const FeatureSection = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
-  padding: 2rem 0;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const ServiceCard = styled.div`
-  background: rgba(32, 32, 32, 0.95);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-  }
-
-  h3 {
-    color: #2ADFFF;
-    font-size: 1.3rem;
-    margin: 1rem 0;
-    font-weight: 600;
-  }
-
-  p {
-    color: rgba(42, 223, 255, 0.9);
-    line-height: 1.6;
-    font-size: 0.9rem;
-  }
-`;
-
-const ServiceIcon = styled.div`
-  font-size: 2rem;
-  color: #2ADFFF;
-  margin-bottom: 1rem;
-`;
-
-const BlogPreviewSection = styled.section`
-  padding: 6rem 2rem;
-  background: #f8f9fa;
-`;
-
-const BlogPreviewGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 2rem 0;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const BlogPreviewCard = styled.div`
-  background: rgba(32, 32, 32, 0.95);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-  }
-`;
-
-const BlogPreviewImage = styled.img`
+  margin-top: 4rem;
   width: 100%;
-  height: 200px;
-  object-fit: cover;
-`;
-
-const BlogPreviewContent = styled.div`
-  padding: 1.5rem;
-
-  h3 {
-    color: #2ADFFF;
-    font-size: 1.2rem;
-    margin: 0.5rem 0;
-    font-weight: 600;
-  }
-
-  p {
-    color: rgba(42, 223, 255, 0.9);
-    line-height: 1.6;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-  }
-`;
-
-const BlogPreviewDate = styled.span`
-  color: rgba(42, 223, 255, 0.8);
-  font-size: 0.85rem;
-`;
-
-const ViewAllButton = styled.button`
-  background: var(--accent-color);
-  color: #fff;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 3rem auto 0;
-  display: block;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(97, 218, 251, 0.3);
-  }
-`;
-
-const AchievementsSection = styled.section`
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #2a2a2a 100%);
-  color: #fff;
-`;
-
-const AchievementGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
   max-width: 1200px;
-  margin: 0 auto;
-  
-  @media screen and (max-width: 768px) {
-    gap: 1.5rem;
-  }
-  
-  @media screen and (max-width: 480px) {
+  padding: 0 1rem;
+
+  @media (max-width: 768px) {
+    margin-top: 2rem;
+    gap: 1rem;
     grid-template-columns: 1fr;
   }
 `;
 
-const AchievementCard = styled.div`
-  text-align: center;
-  padding: 2rem;
+const FeatureCard = styled(motion.div)`
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(42, 223, 255, 0.1);
+  svg {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
   }
 
   h3 {
-    font-size: 2.5rem;
-    color: #2ADFFF;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, #2ADFFF 0%, #fff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px rgba(42, 223, 255, 0.3);
-  }
-
-  h4 {
     font-size: 1.2rem;
-    color: #fff;
+    color: var(--accent-color);
     margin-bottom: 1rem;
-    font-weight: 500;
   }
 
   p {
     color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
     line-height: 1.6;
-    font-size: 1rem;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at center,
+      rgba(42, 223, 255, 0.1) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    
+    svg {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
   }
 `;
 
-const GlobalStyle = createGlobalStyle`
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-  }
-
-  #root {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-  }
+const TypewriterContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
 `;
 
 function Home() {
-  const projects = [
-    {
-      title: "Tech Blog Platform",
-      description: "A full-stack blog platform built with React and Node.js, featuring markdown support and user authentication.",
-      image: "https://via.placeholder.com/400x200",
-      tech: ["React", "Node.js", "MongoDB"],
-      github: "https://github.com/yourusername/project1",
-      demo: "https://project1-demo.com"
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
     },
-    {
-      title: "E-commerce Dashboard",
-      description: "An administrative dashboard for managing online stores, with real-time analytics and inventory management.",
-      image: "https://via.placeholder.com/400x200",
-      tech: ["React", "Redux", "Firebase"],
-      github: "https://github.com/yourusername/project2",
-      demo: "https://project2-demo.com"
-    },
-    {
-      title: "Weather App",
-      description: "A weather application that provides real-time weather data and forecasts using modern APIs.",
-      image: "https://via.placeholder.com/400x200",
-      tech: ["React", "API", "CSS3"],
-      github: "https://github.com/yourusername/project3",
-      demo: "https://project3-demo.com"
-    }
-  ];
-
-  const skills = [
-    {
-      title: "Frontend Development",
-      description: "Building responsive and interactive user interfaces with React, JavaScript, and modern CSS",
-      icon: "💻"
-    },
-    {
-      title: "Backend Development",
-      description: "Creating robust server-side applications with Node.js and Express",
-      icon: "🔧"
-    },
-    {
-      title: "Database Design",
-      description: "Designing and implementing efficient database solutions with MongoDB and SQL",
-      icon: "🗄️"
-    },
-    {
-      title: "API Development",
-      description: "Building RESTful APIs and integrating third-party services",
-      icon: "🔌"
-    }
-  ];
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add form submission logic here
   };
 
-  useEffect(() => {
-    AOS.init({
-      duration: 1000,
-      once: true,
-    });
-  }, []);
-
-  const testimonials = [
-    {
-      text: "Working with DuyThanh was an absolute pleasure. Their technical expertise and attention to detail resulted in an outstanding product.",
-      author: "John Doe",
-      position: "CEO, Tech Corp",
-      avatar: "https://via.placeholder.com/50"
-    },
-    {
-      text: "Exceptional developer who consistently delivers high-quality work. Their problem-solving skills are remarkable.",
-      author: "Jane Smith",
-      position: "CTO, StartUp Inc",
-      avatar: "https://via.placeholder.com/50"
-    },
-    {
-      text: "Innovative solutions, clear communication, and timely delivery. Couldn't ask for a better development partner.",
-      author: "Mike Johnson",
-      position: "Product Manager, Innovation Labs",
-      avatar: "https://via.placeholder.com/50"
-    }
-  ];
-
-  const timelineEvents = [
-    {
-      year: "2024",
-      title: "Senior Developer",
-      company: "Tech Corp",
-      description: "Leading development team and architecting scalable solutions"
-    },
-    {
-      year: "2022",
-      title: "Full Stack Developer",
-      company: "StartUp Inc",
-      description: "Built and maintained multiple web applications"
-    },
-    {
-      year: "2020",
-      title: "Junior Developer",
-      company: "Code Labs",
-      description: "Started professional journey in web development"
-    }
-  ];
-
-  const services = [
-    {
-      icon: "🚀",
-      title: "Web Development",
-      description: "Building modern, responsive websites and web applications using the latest technologies."
-    },
-    {
-      icon: "📱",
-      title: "Mobile Development",
-      description: "Creating cross-platform mobile applications with React Native and modern frameworks."
-    },
-    {
-      icon: "⚡",
-      title: "Performance Optimization",
-      description: "Optimizing web applications for maximum speed and efficiency."
-    },
-    {
-      icon: "🛠️",
-      title: "Technical Consulting",
-      description: "Providing expert advice on technology choices and architecture decisions."
-    }
-  ];
-
-  const blogPreviews = [
-    {
-      title: "The Future of Web Development",
-      excerpt: "Exploring upcoming trends and technologies in web development...",
-      date: "2024-02-20",
-      image: "https://via.placeholder.com/400x200"
-    },
-    {
-      title: "Mastering React Hooks",
-      excerpt: "A comprehensive guide to using React Hooks effectively...",
-      date: "2024-02-15",
-      image: "https://via.placeholder.com/400x200"
-    },
-    {
-      title: "Building Scalable Applications",
-      excerpt: "Best practices for creating maintainable and scalable apps...",
-      date: "2024-02-10",
-      image: "https://via.placeholder.com/400x200"
-    }
-  ];
-
-  const achievements = [
-    {
-      number: "100+",
-      title: "Projects Completed",
-      description: "Successfully delivered projects across various industries"
-    },
-    {
-      number: "50+",
-      title: "Happy Clients",
-      description: "Satisfied clients from around the world"
-    },
-    {
-      number: "5+",
-      title: "Years Experience",
-      description: "Years of professional development experience"
-    },
-    {
-      number: "30+",
-      title: "Technologies",
-      description: "Different technologies and frameworks mastered"
-    }
-  ];
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
-    <>
+    <HomeContainer
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <GridBackground />
+      <BackgroundGlow />
+      
+      <CircleDecoration size="400px" style={{ top: '-20%', right: '-10%' }} />
+      <CircleDecoration size="300px" style={{ bottom: '-10%', left: '-10%' }} delay="2s" />
+      
+      <OrbitingDot size="8px" style={{ top: '20%', right: '20%' }} />
+      <OrbitingDot size="12px" style={{ bottom: '30%', left: '20%' }} duration="25s" />
+      
+      <FloatingElement
+        as={FaCode}
+        style={{ top: '20%', left: '15%' }}
+        duration="7s"
+      />
+      <FloatingElement
+        as={FaLaptopCode}
+        style={{ top: '70%', right: '10%' }}
+        duration="8s"
+        delay="1s"
+      />
+      <FloatingElement
+        as={FaServer}
+        style={{ top: '40%', right: '20%' }}
+        duration="6s"
+        delay="2s"
+      />
+
       <HeroSection>
-        <HeroContent
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Title
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
+        <Title variants={itemVariants}>
+          Welcome to My Portfolio
+        </Title>
+        <TypewriterContainer>
+          <TypewriterText>
+            <TypeAnimation
+              sequence={[
+                'Full Stack Developer',
+                1000,
+                'Tech Enthusiast',
+                1000,
+                'Full Stack Developer\n& Tech Enthusiast',
+                // After this point, loop back to the start
+              ]}
+              wrapper="span"
+              speed={50}
+              style={{ display: 'inline-block', whiteSpace: 'pre-line' }}
+              repeat={1}
+              cursor={true}
+            />
+          </TypewriterText>
+        </TypewriterContainer>
+        <Description variants={itemVariants}>
+          I create beautiful, responsive, and user-friendly web applications
+          using modern technologies and best practices. Let's build something
+          amazing together!
+        </Description>
+        <ButtonContainer variants={itemVariants}>
+          <StyledButton
+            as={Link}
+            to="/about"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Hi, I'm DuyThanh
-          </Title>
-          <Subtitle
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            Learn More <FaArrowRight />
+          </StyledButton>
+          <StyledButton
+            as={Link}
+            to="/blog"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Software Developer & Tech Enthusiast
-          </Subtitle>
-          <Description
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.8 }}
-          >
-            I specialize in building exceptional digital experiences. 
-            Currently, I'm focused on building accessible, human-centered products
-            using modern web technologies.
-          </Description>
-          <SocialLinks
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
-          >
-            <motion.a 
-              href="https://github.com/Duy-Thanh"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaGithub />
-            </motion.a>
-            <motion.a 
-              href="https://linkedin.com/in/thanhdz167"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaLinkedin />
-            </motion.a>
-            <motion.a 
-              href="mailto:thanhdz167@gmail.com"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaEnvelope />
-            </motion.a>
-          </SocialLinks>
-        </HeroContent>
+            Read Blog <FaArrowRight />
+          </StyledButton>
+        </ButtonContainer>
       </HeroSection>
 
-      <ProjectsSection>
-        <SectionTitle
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+      <FeatureSection variants={containerVariants}>
+        <FeatureCard
+          variants={itemVariants}
+          whileHover={{ y: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
         >
-          Featured Projects
-        </SectionTitle>
-        <ProjectsContainer>
-          <ProjectsGrid>
-            {projects.map((project, index) => (
-              <ProjectCard key={index}>
-                <ProjectImage src={project.image} alt={project.title} />
-                <ProjectInfo>
-                  <ProjectTitle>{project.title}</ProjectTitle>
-                  <ProjectDescription>{project.description}</ProjectDescription>
-                  <ProjectTech>
-                    {project.tech.map((tech, index) => (
-                      <TechTag key={index}>{tech}</TechTag>
-                    ))}
-                  </ProjectTech>
-                  <ProjectLinks>
-                    <a href={project.github} target="_blank" rel="noopener noreferrer">
-                      <FaGithub />
-                    </a>
-                    <a href={project.demo} target="_blank" rel="noopener noreferrer">
-                      <FaExternalLinkAlt />
-                    </a>
-                  </ProjectLinks>
-                </ProjectInfo>
-              </ProjectCard>
-            ))}
-          </ProjectsGrid>
-        </ProjectsContainer>
-      </ProjectsSection>
+          <FaCode />
+          <h3>Modern Development</h3>
+          <p>Using cutting-edge technologies and best practices to build scalable applications</p>
+        </FeatureCard>
 
-      <TimelineSection>
-        <SectionTitle>Experience</SectionTitle>
-        <Timeline>
-          {timelineEvents.map((event, index) => (
-            <TimelineItem 
-              key={index} 
-              $right={index % 2 === 1}
-              data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
-            >
-              <TimelineContent>
-                <h3>{event.title}</h3>
-                <h4>{event.company}</h4>
-                <p>{event.year}</p>
-                <p>{event.description}</p>
-              </TimelineContent>
-            </TimelineItem>
-          ))}
-        </Timeline>
-      </TimelineSection>
+        <FeatureCard
+          variants={itemVariants}
+          whileHover={{ y: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <FaLaptopCode />
+          <h3>Responsive Design</h3>
+          <p>Creating beautiful interfaces that work seamlessly across all devices</p>
+        </FeatureCard>
 
-      <SkillsSection>
-        <SectionTitle>Skills & Expertise</SectionTitle>
-        <SkillsGrid>
-          {skills.map((skill, index) => (
-            <SkillCard key={index}>
-              <div>{skill.icon}</div>
-              <h3>{skill.title}</h3>
-              <p>{skill.description}</p>
-            </SkillCard>
-          ))}
-        </SkillsGrid>
-      </SkillsSection>
-
-      <TestimonialsSection>
-        <SectionTitle style={{ color: '#fff' }}>Testimonials</SectionTitle>
-        <TestimonialsGrid>
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard 
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <QuoteIcon />
-              <TestimonialText>{testimonial.text}</TestimonialText>
-              <TestimonialAuthor>
-                <AuthorAvatar src={testimonial.avatar} alt={testimonial.author} />
-                <AuthorInfo>
-                  <h4>{testimonial.author}</h4>
-                  <p>{testimonial.position}</p>
-                </AuthorInfo>
-              </TestimonialAuthor>
-            </TestimonialCard>
-          ))}
-        </TestimonialsGrid>
-      </TestimonialsSection>
-
-      <ServicesSection>
-        <SectionTitle>Services</SectionTitle>
-        <ServiceGrid>
-          {services.map((service, index) => (
-            <ServiceCard 
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <ServiceIcon>{service.icon}</ServiceIcon>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-            </ServiceCard>
-          ))}
-        </ServiceGrid>
-      </ServicesSection>
-
-      <BlogPreviewSection>
-        <SectionTitle>Latest Blog Posts</SectionTitle>
-        <BlogPreviewGrid>
-          {blogPreviews.map((post, index) => (
-            <BlogPreviewCard 
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <BlogPreviewImage src={post.image} alt={post.title} />
-              <BlogPreviewContent>
-                <BlogPreviewDate>{new Date(post.date).toLocaleDateString()}</BlogPreviewDate>
-                <h3>{post.title}</h3>
-                <p>{post.excerpt}</p>
-              </BlogPreviewContent>
-            </BlogPreviewCard>
-          ))}
-        </BlogPreviewGrid>
-        <ViewAllButton onClick={() => window.location.href = '/blog'}>
-          View All Posts
-        </ViewAllButton>
-      </BlogPreviewSection>
-
-      <AchievementsSection>
-        <SectionTitle>Achievements</SectionTitle>
-        <AchievementGrid>
-          {achievements.map((achievement, index) => (
-            <AchievementCard 
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <h3>{achievement.number}</h3>
-              <h4>{achievement.title}</h4>
-              <p>{achievement.description}</p>
-            </AchievementCard>
-          ))}
-        </AchievementGrid>
-      </AchievementsSection>
-
-      <ContactSection>
-        <ContactContent>
-          <ContactTitle>Get In Touch</ContactTitle>
-          <p>Have a question or want to work together?</p>
-          <ContactForm onSubmit={handleSubmit}>
-            <FormGroup>
-              <Input type="text" placeholder="Your Name" required />
-            </FormGroup>
-            <FormGroup>
-              <Input type="email" placeholder="Your Email" required />
-            </FormGroup>
-            <FormGroup>
-              <TextArea placeholder="Your Message" required />
-            </FormGroup>
-            <SubmitButton type="submit">Send Message</SubmitButton>
-          </ContactForm>
-        </ContactContent>
-      </ContactSection>
-    </>
+        <FeatureCard
+          variants={itemVariants}
+          whileHover={{ y: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <FaServer />
+          <h3>Full Stack Solutions</h3>
+          <p>End-to-end development from database design to user interface</p>
+        </FeatureCard>
+      </FeatureSection>
+    </HomeContainer>
   );
 }
 
