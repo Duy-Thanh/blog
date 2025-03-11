@@ -49,6 +49,16 @@ const shineAnimation = keyframes`
   100% { background-position: 200% center; }
 `;
 
+const floatingDotsAnimation = keyframes`
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+`;
+
+const glowAnimation = keyframes`
+  0%, 100% { filter: drop-shadow(0 0 15px rgba(42, 223, 255, 0.3)); }
+  50% { filter: drop-shadow(0 0 30px rgba(42, 223, 255, 0.6)); }
+`;
+
 const BlogContainer = styled(motion.div)`
   max-width: 1200px;
   margin: 0 auto;
@@ -79,7 +89,8 @@ const BlogHeader = styled(motion.div)`
     inset: 0;
     background: 
       radial-gradient(circle at 20% 20%, rgba(42, 223, 255, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(42, 223, 255, 0.15) 0%, transparent 50%);
+      radial-gradient(circle at 80% 80%, rgba(42, 223, 255, 0.15) 0%, transparent 50%),
+      linear-gradient(45deg, rgba(42, 223, 255, 0.05) 0%, transparent 70%);
     z-index: -1;
     opacity: 0.8;
     animation: ${pulseAnimation} 8s ease-in-out infinite;
@@ -109,6 +120,24 @@ const BlogHeader = styled(motion.div)`
     text-shadow: 0 0 30px rgba(42, 223, 255, 0.3);
     letter-spacing: -1px;
     font-weight: 800;
+    position: relative;
+    display: inline-block;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(42, 223, 255, 0.8), 
+        transparent
+      );
+      animation: ${glowAnimation} 3s ease-in-out infinite;
+    }
   }
 
   p {
@@ -133,21 +162,24 @@ const SearchContainer = styled.div`
   position: relative;
   width: 90%;
   
-  &::after {
+  &::before {
     content: '';
     position: absolute;
-    inset: -5px;
-    border-radius: 35px;
+    inset: -2px;
+    border-radius: 32px;
     background: linear-gradient(135deg, 
-      rgba(42, 223, 255, 0.2),
-      rgba(255, 255, 255, 0.1)
+      rgba(42, 223, 255, 0.5),
+      rgba(255, 255, 255, 0.1),
+      rgba(42, 223, 255, 0.5)
     );
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
+    animation: ${shimmer} 2s linear infinite;
+    background-size: 200% 100%;
   }
 
-  &:focus-within::after {
+  &:focus-within::before {
     opacity: 1;
   }
 `;
@@ -227,6 +259,24 @@ const FilterButton = styled(motion.button)`
   box-shadow: ${props => props.$active ?
     '0 8px 20px rgba(42, 223, 255, 0.2)' :
     'none'};
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, 
+      rgba(42, 223, 255, 0.5),
+      rgba(255, 255, 255, 0.1)
+    );
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
 
   &:hover {
     transform: translateY(-2px);
@@ -474,6 +524,73 @@ const ErrorContainer = styled(motion.div)`
   }
 `;
 
+// Add decorative elements
+const DecorativeShape = styled.div`
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: rgba(42, 223, 255, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  
+  &.top-left {
+    top: 10%;
+    left: 10%;
+    animation: ${floatingDotsAnimation} 8s ease-in-out infinite;
+  }
+  
+  &.top-right {
+    top: 15%;
+    right: 10%;
+    animation: ${floatingDotsAnimation} 8s ease-in-out infinite reverse;
+  }
+  
+  &.bottom-left {
+    bottom: 15%;
+    left: 15%;
+    animation: ${floatingDotsAnimation} 7s ease-in-out infinite 1s;
+  }
+  
+  &.bottom-right {
+    bottom: 10%;
+    right: 15%;
+    animation: ${floatingDotsAnimation} 7s ease-in-out infinite reverse 1s;
+  }
+`;
+
+const CategoryIndicator = styled(motion.div)`
+  position: relative;
+  padding: 0.5rem 0;
+  margin: 1rem 0;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(42, 223, 255, 0.3),
+      transparent
+    );
+  }
+`;
+
+const CategoryLabel = styled(motion.span)`
+  position: relative;
+  background: var(--card-background);
+  padding: 0.5rem 1.5rem;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid rgba(42, 223, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(42, 223, 255, 0.1);
+`;
+
 function Blog() {
   const { user, isInitialized } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -613,7 +730,11 @@ function Blog() {
       animate="visible"
       variants={containerVariants}
     >
-      <BlogHeader variants={itemVariants}>
+      <BlogHeader>
+        <DecorativeShape className="top-left" />
+        <DecorativeShape className="top-right" />
+        <DecorativeShape className="bottom-left" />
+        <DecorativeShape className="bottom-right" />
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -653,6 +774,16 @@ function Blog() {
           ))}
         </FiltersContainer>
       </BlogHeader>
+
+      <CategoryIndicator>
+        <CategoryLabel
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          {selectedCategory === 'all' ? 'All Posts' : `${selectedCategory} Posts`}
+        </CategoryLabel>
+      </CategoryIndicator>
 
       <BlogGrid variants={containerVariants}>
         {currentPosts.length > 0 ? (
