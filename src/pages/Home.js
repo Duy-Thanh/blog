@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FaGithub, FaLinkedin, FaArrowRight, FaCode, FaLaptopCode, FaServer } from 'react-icons/fa';
 import { TypeAnimation } from 'react-type-animation';
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim";
+import { useSpring, animated } from '@react-spring/web';
+import { useInView } from 'react-intersection-observer';
+import Tilt from 'react-parallax-tilt';
+import Fade from 'react-reveal/Fade';
+import Zoom from 'react-reveal/Zoom';
 
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
@@ -45,6 +52,12 @@ const HomeContainer = styled(motion.div)`
     padding: 1rem;
     justify-content: flex-start;
     padding-top: 2rem;
+  }
+
+  .particles {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
   }
 `;
 
@@ -334,29 +347,127 @@ const TypewriterContainer = styled.div`
   margin: 0 auto;
 `;
 
-function Home() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
+// Update the particle configuration
+const particlesConfig = {
+  background: {
+    color: {
+      value: "transparent",
     },
-  };
+  },
+  particles: {
+    color: {
+      value: "#2ADFFF",
+    },
+    links: {
+      color: "#2ADFFF",
+      distance: 150,
+      enable: true,
+      opacity: 0.2,
+      width: 1,
+    },
+    move: {
+      direction: "none",
+      enable: true,
+      outModes: {
+        default: "bounce",
+      },
+      random: false,
+      speed: 1,
+      straight: false,
+    },
+    number: {
+      density: {
+        enable: true,
+        area: 800,
+      },
+      value: 50,
+    },
+    opacity: {
+      value: 0.3,
+    },
+    size: {
+      value: { min: 1, max: 3 },
+    },
+  },
+};
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
+// Add animated feature card
+const AnimatedFeatureCard = ({ icon: Icon, title, description }) => {
+  const [ref, inView] = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
+
+  const springProps = useSpring({
+    opacity: inView ? 1 : 0,
+    transform: inView ? 'translateY(0)' : 'translateY(50px)',
+  });
 
   return (
-    <HomeContainer
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
+    <Tilt
+      tiltMaxAngleX={10}
+      tiltMaxAngleY={10}
+      scale={1.05}
+      transitionSpeed={2000}
+      gyroscope={true}
     >
+      <animated.div ref={ref} style={springProps}>
+        <FeatureCard
+          whileHover={{ y: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <Icon />
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </FeatureCard>
+      </animated.div>
+    </Tilt>
+  );
+};
+
+// Add these variants for animations
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.3
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5
+    }
+  }
+};
+
+function Home() {
+  const particlesInit = useCallback(async (engine) => {
+    await loadSlim(engine);
+  }, []);
+
+  // Add spring animation for the title
+  const titleSpring = useSpring({
+    from: { opacity: 0, transform: 'translateY(-50px)' },
+    to: { opacity: 1, transform: 'translateY(0)' },
+    config: { tension: 300, friction: 20 },
+  });
+
+  return (
+    <HomeContainer>
+      <Particles
+        id="tsparticles"
+        init={particlesInit}
+        options={particlesConfig}
+        className="particles"
+      />
+      
       <GridBackground />
       <BackgroundGlow />
       
@@ -384,11 +495,16 @@ function Home() {
         delay="2s"
       />
 
-      <HeroSection>
+      <HeroSection
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <Title variants={itemVariants}>
           Welcome to My Portfolio
         </Title>
-        <TypewriterContainer>
+
+        <TypewriterContainer variants={itemVariants}>
           <TypewriterText>
             <TypeAnimation
               sequence={[
@@ -397,7 +513,6 @@ function Home() {
                 'Tech Enthusiast',
                 1000,
                 'Full Stack Developer\n& Tech Enthusiast',
-                // After this point, loop back to the start
               ]}
               wrapper="span"
               speed={50}
@@ -407,11 +522,13 @@ function Home() {
             />
           </TypewriterText>
         </TypewriterContainer>
+
         <Description variants={itemVariants}>
           I create beautiful, responsive, and user-friendly web applications
           using modern technologies and best practices. Let's build something
           amazing together!
         </Description>
+
         <ButtonContainer variants={itemVariants}>
           <StyledButton
             as={Link}
@@ -432,36 +549,22 @@ function Home() {
         </ButtonContainer>
       </HeroSection>
 
-      <FeatureSection variants={containerVariants}>
-        <FeatureCard
-          variants={itemVariants}
-          whileHover={{ y: -10 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <FaCode />
-          <h3>Modern Development</h3>
-          <p>Using cutting-edge technologies and best practices to build scalable applications</p>
-        </FeatureCard>
-
-        <FeatureCard
-          variants={itemVariants}
-          whileHover={{ y: -10 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <FaLaptopCode />
-          <h3>Responsive Design</h3>
-          <p>Creating beautiful interfaces that work seamlessly across all devices</p>
-        </FeatureCard>
-
-        <FeatureCard
-          variants={itemVariants}
-          whileHover={{ y: -10 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <FaServer />
-          <h3>Full Stack Solutions</h3>
-          <p>End-to-end development from database design to user interface</p>
-        </FeatureCard>
+      <FeatureSection>
+        <AnimatedFeatureCard
+          icon={FaCode}
+          title="Modern Development"
+          description="Using cutting-edge technologies and best practices to build scalable applications"
+        />
+        <AnimatedFeatureCard
+          icon={FaLaptopCode}
+          title="Responsive Design"
+          description="Creating beautiful interfaces that work seamlessly across all devices"
+        />
+        <AnimatedFeatureCard
+          icon={FaServer}
+          title="Full Stack Solutions"
+          description="End-to-end development from database design to user interface"
+        />
       </FeatureSection>
     </HomeContainer>
   );

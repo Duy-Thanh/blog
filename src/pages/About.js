@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
+import { useSpring, animated, useTrail, config } from '@react-spring/web';
+import { useInView } from 'react-intersection-observer';
+import Tilt from 'react-parallax-tilt';
+import { TypeAnimation } from 'react-type-animation';
 import { 
   FaGithub, FaLinkedin, FaEnvelope, FaCode, 
   FaServer, FaDatabase, FaReact, FaNode, 
   FaPython, FaJava, FaDocker, FaAws 
 } from 'react-icons/fa';
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim";
 
-// Add these animations
+// Move shimmer animation to the top with other keyframes
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -23,7 +29,7 @@ const shimmer = keyframes`
   100% { background-position: 200% center; }
 `;
 
-// Add these new animations
+// Animation keyframes
 const rotate = keyframes`
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -52,6 +58,183 @@ const gradientMove = keyframes`
   100% { background-position: 0% 50%; }
 `;
 
+const glitch = keyframes`
+  0% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(-2px, 2px);
+  }
+  10% {
+    clip-path: inset(10% 0 85% 0);
+    transform: translate(1px, -3px);
+  }
+  20% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(-5px, 2px);
+  }
+  30% {
+    clip-path: inset(10% 0 85% 0);
+    transform: translate(3px, -2px);
+  }
+  40% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    clip-path: inset(0% 0 100% 0);
+    transform: translate(3px, 2px);
+  }
+  60% {
+    clip-path: inset(100% 0 0% 0);
+    transform: translate(-3px, 1px);
+  }
+  100% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate(0);
+  }
+`;
+
+// Variants for framer-motion
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5 }
+  }
+};
+
+// Styled components
+const AboutContainer = styled(motion.div)`
+  min-height: calc(100vh - var(--header-height));
+  padding: clamp(1rem, 5vw, 3rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+`;
+
+const Section = styled(motion.section)`
+  margin-bottom: 4rem;
+`;
+
+const SectionTitle = styled(motion.h2)`
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: var(--accent-color);
+  margin-bottom: 2rem;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--accent-color);
+    border-radius: 2px;
+  }
+`;
+
+const SkillGrid = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+`;
+
+const SkillCard = styled(motion.div)`
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at center,
+      rgba(42, 223, 255, 0.1) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+`;
+
+const ProgressBar = styled(motion.div)`
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-top: 1rem;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: ${props => props.progress}%;
+    background: var(--accent-color);
+    border-radius: 3px;
+    transition: width 1s ease-out;
+  }
+`;
+
+const TimelineContainer = styled(motion.div)`
+  position: relative;
+  padding: 2rem 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: rgba(42, 223, 255, 0.2);
+  }
+`;
+
+const TimelineItem = styled(motion.div)`
+  display: flex;
+  justify-content: ${props => props.align === 'left' ? 'flex-start' : 'flex-end'};
+  padding: 2rem 0;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+  }
+`;
+
+const TimelineContent = styled(motion.div)`
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 15px;
+  max-width: 500px;
+  position: relative;
+  border: 1px solid rgba(42, 223, 255, 0.1);
+`;
+
 // Add decorative elements
 const Particle = styled.div`
   position: absolute;
@@ -63,17 +246,6 @@ const Particle = styled.div`
   left: ${props => props.left};
   animation: ${float} ${props => props.duration || '3s'} ease-in-out infinite;
   animation-delay: ${props => props.delay || '0s'};
-`;
-
-const AboutContainer = styled(motion.div)`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: clamp(1rem, 5vw, 3rem);
-  color: var(--text-color);
-  position: relative;
-  z-index: 1;
-  min-height: calc(100vh - var(--header-height));
-  overflow-x: hidden;
 `;
 
 const HeroSection = styled(motion.div)`
@@ -142,178 +314,6 @@ const Subtitle = styled(motion.p)`
   line-height: 1.6;
   position: relative;
   z-index: 1;
-`;
-
-const Section = styled(motion.section)`
-  margin: 4rem 0;
-  position: relative;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(42, 223, 255, 0.05);
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg,
-      rgba(42, 223, 255, 0.2),
-      transparent 50%
-    );
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-`;
-
-const SectionTitle = styled(motion.h2)`
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  color: var(--accent-color);
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      rgba(42, 223, 255, 0.5),
-      transparent
-    );
-  }
-`;
-
-const SkillsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
-`;
-
-const SkillCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid rgba(42, 223, 255, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 200%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    transform: skewX(-15deg);
-    transition: 0.5s;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-      circle at center,
-      rgba(42, 223, 255, 0.1) 0%,
-      transparent 50%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  &:hover {
-    transform: translateY(-5px);
-    border-color: rgba(42, 223, 255, 0.3);
-    box-shadow: 0 8px 20px rgba(42, 223, 255, 0.15);
-
-    &::before {
-      left: 100%;
-    }
-
-    &::after {
-      opacity: 1;
-    }
-  }
-
-  h3 {
-    font-size: 1.2rem;
-    color: var(--accent-color);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    
-    svg {
-      font-size: 1.5rem;
-      animation: ${glow} 3s ease-in-out infinite;
-    }
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      margin: 0.8rem 0;
-      color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: all 0.3s ease;
-
-      svg {
-        color: var(--accent-color);
-        font-size: 1.2rem;
-        opacity: 0.8;
-      }
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: -20px;
-        top: 50%;
-        width: 10px;
-        height: 2px;
-        background: var(--accent-color);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-        transform-origin: right;
-      }
-
-      &:hover {
-        transform: translateX(5px);
-        color: var(--accent-color);
-
-        svg {
-          opacity: 1;
-        }
-
-        &::before {
-          transform: scaleX(1);
-        }
-      }
-    }
-  }
 `;
 
 const ContactSection = styled(motion.div)`
@@ -476,124 +476,18 @@ const StatCard = styled(motion.div)`
 // Add a floating tech icon component
 const FloatingIcon = styled(motion.div)`
   position: absolute;
-  font-size: ${props => props.size || '24px'};
-  color: rgba(42, 223, 255, ${props => props.opacity || '0.3'});
+  font-size: ${props => props.size || '30px'};
+  color: var(--accent-color);
+  opacity: ${props => props.opacity || 0.1};
   animation: ${floatGlow} ${props => props.duration || '6s'} ease-in-out infinite;
   animation-delay: ${props => props.delay || '0s'};
   z-index: 0;
-  pointer-events: none;
-`;
-
-// Add a progress bar component
-const ProgressBar = styled(motion.div)`
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  margin-top: 0.5rem;
-  overflow: hidden;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: ${props => props.progress}%;
-    background: linear-gradient(90deg, 
-      var(--accent-color),
-      #1fb8d4
-    );
-    border-radius: 2px;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    animation: ${shimmer} 2s linear infinite;
-  }
-`;
-
-// Add these new animations
-const glitch = keyframes`
-  0% {
-    clip-path: inset(80% 0 0 0);
-    transform: translate(-2px, 2px);
-  }
-  10% {
-    clip-path: inset(10% 0 85% 0);
-    transform: translate(1px, -3px);
-  }
-  20% {
-    clip-path: inset(80% 0 0 0);
-    transform: translate(-5px, 2px);
-  }
-  30% {
-    clip-path: inset(10% 0 85% 0);
-    transform: translate(3px, -2px);
-  }
-  40% {
-    clip-path: inset(50% 0 30% 0);
-    transform: translate(-2px, 1px);
-  }
-  50% {
-    clip-path: inset(0% 0 100% 0);
-    transform: translate(3px, 2px);
-  }
-  60% {
-    clip-path: inset(100% 0 0% 0);
-    transform: translate(-3px, 1px);
-  }
-  100% {
-    clip-path: inset(80% 0 0 0);
-    transform: translate(0);
-  }
-`;
-
-// Add a glitch effect to Title
-const GlitchText = styled.span`
-  position: relative;
-  display: inline-block;
-
-  &::before,
-  &::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--background);
-  }
-
-  &::before {
-    left: 2px;
-    text-shadow: -2px 0 #ff00c1;
-    animation: ${glitch} 2s infinite linear alternate-reverse;
-  }
-
-  &::after {
-    left: -2px;
-    text-shadow: 2px 0 #00fff9;
-    animation: ${glitch} 2s infinite linear alternate;
-  }
 `;
 
 // Add a 3D card effect
-const Card3D = styled(motion.div)`
+const Card3D = styled(Tilt)`
   transform-style: preserve-3d;
-  perspective: 1000px;
+  transform: perspective(1000px);
 `;
 
 // Add a skill progress ring component
@@ -674,28 +568,97 @@ const WaveContainer = styled.div`
   }
 `;
 
-function About() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
-  };
+// Add a glitch effect to Title
+const GlitchText = styled.span`
+  position: relative;
+  display: inline-block;
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  &::before,
+  &::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
+  }
+
+  &::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff00c1;
+    animation: ${glitch} 2s infinite linear alternate-reverse;
+  }
+
+  &::after {
+    left: -2px;
+    text-shadow: 2px 0 #00fff9;
+    animation: ${glitch} 2s infinite linear alternate;
+  }
+`;
+
+// Add particles configuration
+const particlesConfig = {
+  particles: {
+    number: { value: 30 },
+    color: { value: "#2ADFFF" },
+    opacity: {
+      value: 0.1,
+      random: true
+    },
+    size: {
+      value: 3,
+      random: true
+    },
+    move: {
+      enable: true,
+      speed: 0.5,
+      random: true,
+      direction: "none"
+    },
+    links: {
+      enable: true,
+      distance: 150,
+      color: "#2ADFFF",
+      opacity: 0.1,
+      width: 1
+    }
+  }
+};
+
+function About() {
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: true
+  });
+
+  const trail = useTrail(3, {
+    from: { opacity: 0, y: 50 },
+    to: { opacity: inView ? 1 : 0, y: inView ? 0 : 50 },
+    config: config.gentle
+  });
+
+  const particlesInit = useCallback(async (engine) => {
+    await loadSlim(engine);
+  }, []);
 
   const techStack = [FaReact, FaNode, FaDatabase, FaPython, FaDocker, FaAws];
 
   return (
     <>
+      <Particles
+        id="tsparticles"
+        init={particlesInit}
+        options={particlesConfig}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0
+        }}
+      />
       <BackgroundDecorator />
-      <AboutContainer
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <HeroSection variants={itemVariants}>
+      <AboutContainer ref={ref}>
+        <HeroSection>
           <Particle size="15px" top="10%" left="10%" duration="4s" />
           <Particle size="10px" top="20%" left="80%" duration="6s" delay="1s" />
           <Particle size="12px" top="60%" left="15%" duration="5s" delay="0.5s" />
@@ -734,40 +697,30 @@ function About() {
           </WaveContainer>
         </HeroSection>
 
-        <Section variants={itemVariants}>
+        <Section>
           <Circle size="200px" style={{ top: '-100px', right: '-100px' }} />
           <Circle size="150px" style={{ bottom: '-75px', left: '-75px' }} delay="2s" />
           <OrbitRing size="150px" style={{ top: '20px', right: '50px' }} />
           <OrbitRing size="100px" style={{ bottom: '40px', left: '30px' }} duration="15s" />
           
           <StatsSection>
-            <StatCard
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h4>5+</h4>
-              <p>Years Experience</p>
-            </StatCard>
-            <StatCard
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h4>50+</h4>
-              <p>Projects Completed</p>
-            </StatCard>
-            <StatCard
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h4>100%</h4>
-              <p>Client Satisfaction</p>
-            </StatCard>
+            {trail.map((props, index) => (
+              <animated.div key={index} style={props}>
+                <StatCard
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <h4>5+</h4>
+                  <p>Years Experience</p>
+                </StatCard>
+              </animated.div>
+            ))}
           </StatsSection>
         </Section>
 
-        <Section variants={itemVariants}>
+        <Section>
           <SectionTitle>Technical Skills</SectionTitle>
-          <SkillsGrid>
+          <SkillGrid>
             <Card3D
               whileHover={{
                 rotateX: 5,
@@ -830,10 +783,10 @@ function About() {
                 </ul>
               </SkillCard>
             </Card3D>
-          </SkillsGrid>
+          </SkillGrid>
         </Section>
 
-        <Section variants={itemVariants}>
+        <Section>
           <SectionTitle>Get in Touch</SectionTitle>
           <ContactSection>
             <SocialLink 
