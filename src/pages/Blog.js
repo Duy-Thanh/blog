@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, FaCalendar, FaClock, FaStar, 
@@ -42,6 +42,11 @@ const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
+`;
+
+const shineAnimation = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
 `;
 
 const BlogContainer = styled(motion.div)`
@@ -232,40 +237,69 @@ const FilterButton = styled(motion.button)`
   }
 `;
 
-const Pagination = styled.div`
+const Pagination = styled(motion.div)`
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.3rem;
-  margin: 1.5rem 0;
+  gap: 0.5rem;
+  margin: 2rem 0;
+  padding: 1rem;
   flex-wrap: wrap;
-  padding: 0.5rem;
-
-  @media screen and (max-width: 480px) {
-    gap: 0.25rem;
-    margin: 1rem 0;
+  
+  &::before, &::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    max-width: 100px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(42, 223, 255, 0.3),
+      transparent
+    );
   }
 `;
 
-const PageButton = styled.button`
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+const PageButton = styled(motion.button)`
+  padding: 0.8rem 1.2rem;
   border: none;
-  border-radius: 8px;
-  background: ${props => props.$active ? '#2ADFFF' : 'rgba(255, 255, 255, 0.1)'};
-  color: ${props => props.$active ? '#1E1E1E' : '#fff'};
+  border-radius: 12px;
+  background: ${props => props.$active ? 
+    'linear-gradient(135deg, var(--accent-color) 0%, #1fb8d4 100%)' : 
+    'rgba(255, 255, 255, 0.05)'};
+  color: ${props => props.$active ? '#1a1a1a' : 'rgba(255, 255, 255, 0.8)'};
+  font-size: 0.95rem;
+  font-weight: ${props => props.$active ? '600' : '400'};
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 32px;
+  min-width: 45px;
+  position: relative;
+  overflow: hidden;
+
+  ${props => props.$active && css`
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: ${shineAnimation} 2s linear infinite;
+    }
+  `}
 
   &:hover {
-    background: ${props => props.$active ? '#2ADFFF' : 'rgba(255, 255, 255, 0.2)'};
     transform: translateY(-2px);
-  }
-
-  @media screen and (max-width: 480px) {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
+    background: ${props => props.$active ?
+      'linear-gradient(135deg, var(--accent-color) 0%, #1fb8d4 100%)' :
+      'rgba(255, 255, 255, 0.1)'};
+    box-shadow: 0 4px 15px rgba(42, 223, 255, 0.15);
   }
 `;
 
@@ -373,6 +407,73 @@ const itemVariants = {
   }
 };
 
+const LoadingContainer = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 2rem;
+`;
+
+const LoadingSpinner = styled(motion.div)`
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(42, 223, 255, 0.1);
+  border-top: 3px solid var(--accent-color);
+  border-radius: 50%;
+`;
+
+const LoadingText = styled(motion.p)`
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  
+  span {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.7;
+  }
+`;
+
+const ErrorContainer = styled(motion.div)`
+  text-align: center;
+  padding: 3rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  margin: 2rem auto;
+  max-width: 600px;
+
+  h3 {
+    color: #ff4444;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+  }
+
+  button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: #ff4444;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+    }
+  }
+`;
+
 function Blog() {
   const { user, isInitialized } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -470,11 +571,40 @@ function Blog() {
   };
 
   if (loading) {
-    return <div>Loading blog posts...</div>;
+    return (
+      <LoadingContainer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <LoadingSpinner
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+        <LoadingText
+          animate={{ opacity: [1, 0.5, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          Loading blog posts<span>...</span>
+        </LoadingText>
+      </LoadingContainer>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <ErrorContainer
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h3>Oops! Something went wrong</h3>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>
+          Try Again
+        </button>
+      </ErrorContainer>
+    );
   }
 
   return (
@@ -550,16 +680,58 @@ function Blog() {
         )}
       </BlogGrid>
 
-      <Pagination>
-        {Array.from({ length: totalPages }, (_, i) => (
+      <Pagination
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        {currentPage > 1 && (
           <PageButton
-            key={i + 1}
-            $active={currentPage === i + 1}
-            onClick={() => setCurrentPage(i + 1)}
+            onClick={() => setCurrentPage(prev => prev - 1)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {i + 1}
+            ←
           </PageButton>
-        ))}
+        )}
+        
+        {Array.from({ length: totalPages }, (_, i) => {
+          const pageNum = i + 1;
+          // Show first page, last page, current page, and pages around current page
+          if (
+            pageNum === 1 ||
+            pageNum === totalPages ||
+            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+          ) {
+            return (
+              <PageButton
+                key={pageNum}
+                $active={currentPage === pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {pageNum}
+              </PageButton>
+            );
+          } else if (
+            pageNum === currentPage - 2 ||
+            pageNum === currentPage + 2
+          ) {
+            return <span key={pageNum}>...</span>;
+          }
+          return null;
+        })}
+        
+        {currentPage < totalPages && (
+          <PageButton
+            onClick={() => setCurrentPage(prev => prev + 1)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            →
+          </PageButton>
+        )}
       </Pagination>
 
       {user && (
