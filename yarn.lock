@@ -9552,13 +9552,6 @@ react-parallax-tilt@^1.7.286:
   resolved "https://registry.yarnpkg.com/react-parallax-tilt/-/react-parallax-tilt-1.7.286.tgz#566836921612087474bf475d0dd1c4d4d5acd1a5"
   integrity sha512-n2lidXet9yUCi2bZWB2e2tchWgyHp/4HT8fzwFk9wW3ZOR3mDAPXD6az34D1O4LPzOxjolsea0sbOA26CE3xYw==
 
-react-particles@^2.12.2:
-  version "2.12.2"
-  resolved "https://registry.yarnpkg.com/react-particles/-/react-particles-2.12.2.tgz#0ab12b72428d3b89537d3422fa8bf725175cfd4d"
-  integrity sha512-Bo9DdrBRPFy8uiT7BA8P36Rdmz6GhB/RG9kkWUyZGIsS8AxWyuUjpVxw9Lr23K0LVE2aenAJ0vnqEbbLDpBgQw==
-  dependencies:
-    tsparticles-engine "^2.12.0"
-
 react-refresh@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.11.0.tgz#77198b944733f0f1f1a90e791de4541f9f074046"
