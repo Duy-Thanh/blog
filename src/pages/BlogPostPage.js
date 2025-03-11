@@ -3,12 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import hljs from 'highlight.js/lib/core';
+import registerLanguages from '../utils/highlightLanguages';
+import 'highlight.js/styles/atom-one-dark.css';
 import { FaCalendar, FaClock, FaEdit, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
 import ConfirmModal from '../components/ConfirmModal';
+
+// Register all languages
+registerLanguages();
 
 const PageWrapper = styled(motion.div)`
   max-width: 1200px;
@@ -353,16 +357,28 @@ function BlogPostPage() {
                 components={{
                   code({node, inline, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '');
-                    return !inline && match ? (
-                      <SyntaxHighlighter
-                        style={vscDarkPlus}
-                        language={match[1]}
-                        PreTag="div"
-                        {...props}
-                      >
-                        {String(children).replace(/\n$/, '')}
-                      </SyntaxHighlighter>
-                    ) : (
+                    if (!inline && match) {
+                      const language = match[1];
+                      let highlightedCode;
+                      try {
+                        highlightedCode = language && hljs.getLanguage(language)
+                          ? hljs.highlight(String(children).replace(/\n$/, ''), { language }).value
+                          : hljs.highlightAuto(String(children)).value;
+                      } catch (err) {
+                        highlightedCode = String(children); // Fallback to plain text
+                        console.warn('Language not supported:', language);
+                      }
+                      
+                      return (
+                        <pre className={className} {...props}>
+                          <code
+                            dangerouslySetInnerHTML={{ __html: highlightedCode }}
+                            className={`hljs ${language ? `language-${language}` : ''}`}
+                          />
+                        </pre>
+                      );
+                    }
+                    return (
                       <code className={className} {...props}>
                         {children}
                       </code>

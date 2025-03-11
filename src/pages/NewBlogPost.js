@@ -1,11 +1,62 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+import java from 'highlight.js/lib/languages/java';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import php from 'highlight.js/lib/languages/php';
+import ruby from 'highlight.js/lib/languages/ruby';
+import swift from 'highlight.js/lib/languages/swift';
+import kotlin from 'highlight.js/lib/languages/kotlin';
+import go from 'highlight.js/lib/languages/go';
+import rust from 'highlight.js/lib/languages/rust';
+import sql from 'highlight.js/lib/languages/sql';
+import bash from 'highlight.js/lib/languages/bash';
+import shell from 'highlight.js/lib/languages/shell';
+import powershell from 'highlight.js/lib/languages/powershell';
+import css from 'highlight.js/lib/languages/css';
+import scss from 'highlight.js/lib/languages/scss';
+import html from 'highlight.js/lib/languages/xml';
+import json from 'highlight.js/lib/languages/json';
+import yaml from 'highlight.js/lib/languages/yaml';
+import markdown from 'highlight.js/lib/languages/markdown';
+import dockerfile from 'highlight.js/lib/languages/dockerfile';
+import ini from 'highlight.js/lib/languages/ini';
+import 'highlight.js/styles/atom-one-dark.css';
 import { useAuth } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
+
+// Register languages
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('java', java);
+hljs.registerLanguage('cpp', cpp);
+hljs.registerLanguage('csharp', csharp);
+hljs.registerLanguage('php', php);
+hljs.registerLanguage('ruby', ruby);
+hljs.registerLanguage('swift', swift);
+hljs.registerLanguage('kotlin', kotlin);
+hljs.registerLanguage('go', go);
+hljs.registerLanguage('rust', rust);
+hljs.registerLanguage('sql', sql);
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('shell', shell);
+hljs.registerLanguage('powershell', powershell);
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('scss', scss);
+hljs.registerLanguage('html', html);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('yaml', yaml);
+hljs.registerLanguage('markdown', markdown);
+hljs.registerLanguage('dockerfile', dockerfile);
+hljs.registerLanguage('ini', ini);
 
 const PageWrapper = styled.div`
   display: grid;
@@ -247,6 +298,36 @@ function NewBlogPost() {
     }
   };
 
+  const renderPreview = (content) => {
+    return content.split(/(```[\s\S]*?```)/g).map((part, index) => {
+      if (part.startsWith('```')) {
+        const [firstLine, ...rest] = part.slice(3, -3).split('\n');
+        const code = rest.join('\n');
+        const language = firstLine.trim();
+        
+        let highlightedCode;
+        try {
+          highlightedCode = language && hljs.getLanguage(language)
+            ? hljs.highlight(code, { language }).value
+            : hljs.highlightAuto(code).value;
+        } catch (err) {
+          highlightedCode = code; // Fallback to plain text
+          console.warn('Language not supported:', language);
+        }
+        
+        return (
+          <pre key={index}>
+            <code 
+              dangerouslySetInnerHTML={{ __html: highlightedCode }}
+              className={`hljs ${language ? `language-${language}` : ''}`}
+            />
+          </pre>
+        );
+      }
+      return <ReactMarkdown key={index}>{part}</ReactMarkdown>;
+    });
+  };
+
   if (!isInitialized) {
     return <div>Initializing...</div>;
   }
@@ -290,29 +371,7 @@ function NewBlogPost() {
       <PreviewContainer>
         <PreviewTitle>Preview</PreviewTitle>
         <MarkdownPreview>
-          <ReactMarkdown
-            components={{
-              code({node, inline, className, children, ...props}) {
-                const match = /language-(\w+)/.exec(className || '');
-                return !inline && match ? (
-                  <SyntaxHighlighter
-                    style={vscDarkPlus}
-                    language={match[1]}
-                    PreTag="div"
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              }
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+          {renderPreview(content)}
         </MarkdownPreview>
       </PreviewContainer>
     </PageWrapper>
