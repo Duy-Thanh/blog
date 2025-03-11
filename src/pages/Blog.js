@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { blogService } from '../services/blogService';
 import { useAuth } from '../contexts/AuthContext';
+import { useScroll } from 'framer-motion';
 
 // Enhanced animations
 const fadeIn = keyframes`
@@ -57,6 +58,18 @@ const floatingDotsAnimation = keyframes`
 const glowAnimation = keyframes`
   0%, 100% { filter: drop-shadow(0 0 15px rgba(42, 223, 255, 0.3)); }
   50% { filter: drop-shadow(0 0 30px rgba(42, 223, 255, 0.6)); }
+`;
+
+const rippleAnimation = keyframes`
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+`;
+
+const gradientMove = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 `;
 
 const BlogContainer = styled(motion.div)`
@@ -224,6 +237,14 @@ const BlogGrid = styled(motion.div)`
   gap: clamp(1rem, 3vw, 1.5rem);
   margin: clamp(2rem, 4vw, 3rem) 0;
   padding: 0 clamp(1rem, 3vw, 2rem);
+
+  @media (min-width: 1024px) {
+    grid-auto-flow: dense;
+    & > *:nth-child(4n) {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+  }
 
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
@@ -591,6 +612,112 @@ const CategoryLabel = styled(motion.span)`
   box-shadow: 0 4px 15px rgba(42, 223, 255, 0.1);
 `;
 
+// Add a background decorator component
+const BackgroundDecorator = styled.div`
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+  opacity: 0.5;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(42, 223, 255, 0.03) 30%,
+      transparent 70%
+    );
+    animation: ${gradientMove} 15s ease infinite;
+  }
+`;
+
+// Add interactive ripple effect
+const RippleEffect = styled(motion.div)`
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(42, 223, 255, 0.2);
+  pointer-events: none;
+  animation: ${rippleAnimation} 1s ease-out forwards;
+`;
+
+// Add a floating stats component
+const StatsOverview = styled(motion.div)`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+`;
+
+const StatCard = styled(motion.div)`
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  text-align: center;
+  
+  h4 {
+    color: var(--accent-color);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+  }
+`;
+
+// Enhanced SearchInput with auto-complete suggestion
+const SearchSuggestions = styled(motion.div)`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--card-background);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  border: 1px solid rgba(42, 223, 255, 0.1);
+  overflow: hidden;
+  z-index: 10;
+  
+  div {
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: rgba(42, 223, 255, 0.1);
+    }
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  }
+`;
+
+// Add a scroll progress indicator
+const ScrollProgress = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--accent-color), 
+    #1fb8d4
+  );
+  transform-origin: 0%;
+  z-index: 1000;
+`;
+
 function Blog() {
   const { user, isInitialized } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -607,6 +734,8 @@ function Blog() {
   const categories = ['all', 'technology', 'lifestyle', 'programming', 'other'];
 
   const navigate = useNavigate();
+  const { scrollYProgress } = useScroll();
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Calculate read time for excerpt preview
   const calculateReadTime = (content) => {
@@ -687,6 +816,24 @@ function Blog() {
     }
   };
 
+  // Add this helper function to your Blog component
+  const calculateTotalReadTime = () => {
+    return posts.reduce((total, post) => {
+      const wordsPerMinute = 200;
+      const wordCount = post.content.split(/\s+/).length;
+      return total + Math.ceil(wordCount / wordsPerMinute);
+    }, 0);
+  };
+
+  // Add this effect for search suggestions
+  useEffect(() => {
+    if (searchTerm.length > 2) {
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [searchTerm]);
+
   if (loading) {
     return (
       <LoadingContainer
@@ -725,156 +872,191 @@ function Blog() {
   }
 
   return (
-    <BlogContainer
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <BlogHeader>
-        <DecorativeShape className="top-left" />
-        <DecorativeShape className="top-right" />
-        <DecorativeShape className="bottom-left" />
-        <DecorativeShape className="bottom-right" />
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Tech Blog
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          Exploring the latest in web development and technology
-        </motion.p>
-        <SearchContainer>
-          <SearchIcon />
-          <SearchInput
-            type="text"
-            placeholder="Search posts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchContainer>
-        
-        <FiltersContainer>
-          {categories.map((category, index) => (
-            <FilterButton
-              key={category}
-              $active={category === selectedCategory}
-              onClick={() => setSelectedCategory(category)}
-              variants={itemVariants}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </FilterButton>
-          ))}
-        </FiltersContainer>
-      </BlogHeader>
-
-      <CategoryIndicator>
-        <CategoryLabel
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          {selectedCategory === 'all' ? 'All Posts' : `${selectedCategory} Posts`}
-        </CategoryLabel>
-      </CategoryIndicator>
-
-      <BlogGrid variants={containerVariants}>
-        {currentPosts.length > 0 ? (
-          currentPosts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: index * 0.1 }}
-            >
-              <BlogPost
-                post={post}
-                isAdmin={user?.id === post.author_id}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            </motion.div>
-          ))
-        ) : (
-          <EmptyState variants={itemVariants}>
-            <h3>No posts found</h3>
-            <p>Try adjusting your search or filters to find what you're looking for.</p>
-          </EmptyState>
-        )}
-      </BlogGrid>
-
-      <Pagination
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+    <>
+      <BackgroundDecorator />
+      <ScrollProgress
+        style={{
+          scaleX: scrollYProgress
+        }}
+      />
+      <BlogContainer
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
       >
-        {currentPage > 1 && (
-          <PageButton
-            onClick={() => setCurrentPage(prev => prev - 1)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <BlogHeader>
+          <DecorativeShape className="top-left" />
+          <DecorativeShape className="top-right" />
+          <DecorativeShape className="bottom-left" />
+          <DecorativeShape className="bottom-right" />
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            ←
-          </PageButton>
-        )}
-        
-        {Array.from({ length: totalPages }, (_, i) => {
-          const pageNum = i + 1;
-          // Show first page, last page, current page, and pages around current page
-          if (
-            pageNum === 1 ||
-            pageNum === totalPages ||
-            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-          ) {
-            return (
-              <PageButton
-                key={pageNum}
-                $active={currentPage === pageNum}
-                onClick={() => setCurrentPage(pageNum)}
-                whileHover={{ scale: 1.05 }}
+            Tech Blog
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Exploring the latest in web development and technology
+          </motion.p>
+          <SearchContainer>
+            <SearchIcon />
+            <SearchInput
+              type="text"
+              placeholder="Search posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchContainer>
+          
+          <FiltersContainer>
+            {categories.map((category, index) => (
+              <FilterButton
+                key={category}
+                $active={category === selectedCategory}
+                onClick={() => setSelectedCategory(category)}
+                variants={itemVariants}
+                whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {pageNum}
-              </PageButton>
-            );
-          } else if (
-            pageNum === currentPage - 2 ||
-            pageNum === currentPage + 2
-          ) {
-            return <span key={pageNum}>...</span>;
-          }
-          return null;
-        })}
-        
-        {currentPage < totalPages && (
-          <PageButton
-            onClick={() => setCurrentPage(prev => prev + 1)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            →
-          </PageButton>
-        )}
-      </Pagination>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </FilterButton>
+            ))}
+          </FiltersContainer>
+        </BlogHeader>
 
-      {user && (
-        <NewPostButton
-          to="new-post"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <CategoryIndicator>
+          <CategoryLabel
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {selectedCategory === 'all' ? 'All Posts' : `${selectedCategory} Posts`}
+          </CategoryLabel>
+        </CategoryIndicator>
+
+        <BlogGrid variants={containerVariants}>
+          {currentPosts.length > 0 ? (
+            currentPosts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: index * 0.1 }}
+              >
+                <BlogPost
+                  post={post}
+                  isAdmin={user?.id === post.author_id}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </motion.div>
+            ))
+          ) : (
+            <EmptyState variants={itemVariants}>
+              <h3>No posts found</h3>
+              <p>Try adjusting your search or filters to find what you're looking for.</p>
+            </EmptyState>
+          )}
+        </BlogGrid>
+
+        <Pagination
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <FaEdit />
-        </NewPostButton>
-      )}
-    </BlogContainer>
+          {currentPage > 1 && (
+            <PageButton
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              ←
+            </PageButton>
+          )}
+          
+          {Array.from({ length: totalPages }, (_, i) => {
+            const pageNum = i + 1;
+            // Show first page, last page, current page, and pages around current page
+            if (
+              pageNum === 1 ||
+              pageNum === totalPages ||
+              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+            ) {
+              return (
+                <PageButton
+                  key={pageNum}
+                  $active={currentPage === pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {pageNum}
+                </PageButton>
+              );
+            } else if (
+              pageNum === currentPage - 2 ||
+              pageNum === currentPage + 2
+            ) {
+              return <span key={pageNum}>...</span>;
+            }
+            return null;
+          })}
+          
+          {currentPage < totalPages && (
+            <PageButton
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              →
+            </PageButton>
+          )}
+        </Pagination>
+
+        {user && (
+          <NewPostButton
+            to="new-post"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <FaEdit />
+          </NewPostButton>
+        )}
+
+        <StatsOverview>
+          <StatCard
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h4>{posts.length}</h4>
+            <p>Total Posts</p>
+          </StatCard>
+          <StatCard
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h4>{Object.keys(categories).length}</h4>
+            <p>Categories</p>
+          </StatCard>
+          <StatCard
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <h4>{calculateTotalReadTime()}</h4>
+            <p>Minutes of Reading</p>
+          </StatCard>
+        </StatsOverview>
+      </BlogContainer>
+    </>
   );
 }
 
