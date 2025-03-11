@@ -3,10 +3,8 @@ import styled, { keyframes, css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaSearch, FaCalendar, FaClock, FaStar, 
-  FaEnvelope, FaEdit, FaTrash, FaArrowUp,
-  FaBookReader, FaHashtag, FaLayerGroup,
-  FaRegClock, FaRegBookmark, FaChevronUp,
-  FaFilter, FaTags, FaRegLightbulb
+  FaEnvelope, FaEdit, FaTrash, FaBookReader, FaHashtag, FaLayerGroup,
+  FaRegClock, FaRegBookmark, FaFilter, FaTags, FaRegLightbulb
 } from 'react-icons/fa';
 import BlogPost from '../components/BlogPost';
 import { Link, useNavigate } from 'react-router-dom';
@@ -807,7 +805,12 @@ const FloatingMenu = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  z-index: 100;
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    right: 1rem;
+    bottom: 1rem;
+  }
 `;
 
 const FloatingButton = styled(motion.button)`
@@ -824,10 +827,17 @@ const FloatingButton = styled(motion.button)`
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(42, 223, 255, 0.3);
   transition: all 0.3s ease;
+  position: relative;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(42, 223, 255, 0.4);
+  }
+
+  @media (max-width: 768px) {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
   }
 `;
 
@@ -1173,13 +1183,6 @@ function Blog() {
         </Pagination>
 
         <FloatingMenu>
-          <FloatingButton
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <FaChevronUp />
-          </FloatingButton>
           {user && (
             <FloatingButton
               as={Link}
